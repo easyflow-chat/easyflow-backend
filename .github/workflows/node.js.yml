@@ -17,13 +17,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v3h
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         registry-url: 'https://registry.npmjs.org'
 
     - name: Create .npmrc
-      run: echo "//registry.npmjs.org/:_authToken=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" > .npmrc
-    - run: npm i
+    - run: npm set "//registry.npmjs.org/:_authToken" ${{ secrets.NPM_TOKEN }}
+    - run: npm ci
     - run: npm run build
