@@ -1,0 +1,18 @@
+version: '3.8'
+volumes:
+  chatapp_vol:
+    driver: local
+services:
+  chatapp_db: 
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: chatapp
+    volumes:
+      - chatapp_vol:/var/lib/mysql
+  chatapp_adminer:
+    image: adminer:latest
+    ports:
+      - "8081:8080"
