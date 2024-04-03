@@ -24,6 +24,6 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
 
     - name: Create .npmrc
-      run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+      run: echo "//registry.npmjs.org/:_authToken=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" > .npmrc
     - run: npm i
     - run: npm run build
