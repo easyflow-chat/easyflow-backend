@@ -24,5 +24,6 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
   
     - run: npm set "//registry.npmjs.org/:_authToken" ${{ secrets.NPM_TOKEN }}
+    - run: npm login
     - run: npm ci
     - run: npm run build
