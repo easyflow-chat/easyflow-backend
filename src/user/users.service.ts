@@ -1,54 +1,38 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Prisma, PrismaClient, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ErrorCodes } from 'enums/error-codes.enum';
-import { SALT_OR_ROUNDS } from '../constants/constants';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(
+    private prisma: PrismaClient,
+    private configService: ConfigService,
+  ) {}
 
   private readonly logger = new Logger(UsersService.name);
 
-  createUser(createUserDto: CreateUserDto): Promise<
-    Prisma.UserGetPayload<{
-      select: {
-        id: true;
-        createdAt: true;
-        updatedAt: true;
-        email: true;
-        password: false;
-      };
-    }>
-  > {
+  createUser(createUserDto: CreateUserDto): Promise<void> {
     return this.prisma.$transaction(async (tx: PrismaClient) => {
       try {
-        this.logger.log(
-          `Attempting to create user with email: ${createUserDto.email}`,
-        );
+        this.logger.log(`Attempting to create user with email: ${createUserDto.email}`);
         const userInDatabase = await tx.user.findUnique({
           where: {
             email: createUserDto.email,
           },
         });
-        this.logger.debug(userInDatabase);
         if (userInDatabase) {
-          this.logger.error(
-            `User with email: ${createUserDto.email} already exists`,
-          );
+          this.logger.error(`User with email: ${createUserDto.email} already exists`);
           throw new InternalServerErrorException({
             error: ErrorCodes.ALREADY_EXISTS,
           });
         }
-        const salt = await bcrypt.genSalt(SALT_OR_ROUNDS);
+        const salt = await bcrypt.genSalt(this.configService.get('SALT_ROUNDS'));
         const hash = await bcrypt.hash(createUserDto.password, salt);
-        const user = await tx.user.create({
+        await tx.user.create({
           data: {
             email: createUserDto.email,
             password: hash,
@@ -61,11 +45,8 @@ export class UsersService {
             password: false,
           },
         });
-        return user;
       } catch (err) {
-        this.logger.error(
-          `Failed to create user with email: ${createUserDto.email}`,
-        );
+        this.logger.error(`Failed to create user with email: ${createUserDto.email}`);
         throw new InternalServerErrorException({ error: ErrorCodes.API_ERROR });
       }
     });

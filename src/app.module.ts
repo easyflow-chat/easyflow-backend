@@ -1,8 +1,28 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
+import * as Joi from 'joi';
+import { AuthModule } from './common/auth/auth.module';
 import { UsersModule } from './user/users.module';
 
 @Module({
-  imports: [UsersModule, AuthModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+      validationSchema: Joi.object({
+        NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+        DATABASE_URL: Joi.string().required(),
+        JWT_SECRET: Joi.string().required(),
+        JWT_EXPIRATION_TIME: Joi.string().required(),
+        COOKIE_SECRET: Joi.string().required(),
+      }),
+      validationOptions: {
+        allowUnknown: true,
+      },
+      cache: true,
+    }),
+    UsersModule,
+    AuthModule,
+  ],
 })
 export class AppModule {}

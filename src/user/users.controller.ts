@@ -1,38 +1,24 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { CurrentUserId } from 'src/common/auth/current-user-id.decrator';
+import { Public } from 'src/common/auth/public.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
+//TODO: change to user
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private usersService: UsersService) {}
 
+  @Public()
   @Post('signup')
-  create(@Body() createUserDto: CreateUserDto): Promise<
-    Prisma.UserGetPayload<{
-      select: {
-        id: true;
-        createdAt: true;
-        updatedAt: true;
-        email: true;
-        password: false;
-      };
-    }>
-  > {
+  create(@Body() createUserDto: CreateUserDto): Promise<void> {
     return this.usersService.createUser(createUserDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string): Promise<
+  @Get()
+  findOne(@CurrentUserId() id: string): Promise<
     Prisma.UserGetPayload<{
       select: {
         id: true;
