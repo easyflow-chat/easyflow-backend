@@ -4,17 +4,17 @@ import { CurrentUserId } from 'src/common/auth/current-user-id.decrator';
 import { Public } from 'src/common/auth/public.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UsersService } from './users.service';
+import { UserService } from './user.service';
 
 //TODO: change to user
-@Controller('users')
-export class UsersController {
-  constructor(private usersService: UsersService) {}
+@Controller('user')
+export class UserController {
+  constructor(private userService: UserService) {}
 
   @Public()
   @Post('signup')
   create(@Body() createUserDto: CreateUserDto): Promise<void> {
-    return this.usersService.createUser(createUserDto);
+    return this.userService.createUser(createUserDto);
   }
 
   @Get()
@@ -29,7 +29,7 @@ export class UsersController {
       };
     }>
   > {
-    return this.usersService.findUserById(id);
+    return this.userService.findUserById(id);
   }
 
   @Put(':id')
@@ -47,7 +47,7 @@ export class UsersController {
       };
     }>
   > {
-    return this.usersService.updateUser(id, updateUserDto);
+    return this.userService.updateUser(id, updateUserDto);
   }
 
   @Delete(':id')
@@ -62,6 +62,6 @@ export class UsersController {
       };
     }>
   > {
-    return this.usersService.deleteUser(id);
+    return this.userService.deleteUser(id);
   }
 }

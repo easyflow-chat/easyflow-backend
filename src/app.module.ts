@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { AuthModule } from './common/auth/auth.module';
-import { UsersModule } from './user/users.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { UsersModule } from './user/users.module';
       },
       cache: true,
     }),
-    UsersModule,
+    UserModule,
     AuthModule,
   ],
 })
