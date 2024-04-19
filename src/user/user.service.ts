@@ -7,29 +7,29 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     private prisma: PrismaClient,
     private configService: ConfigService,
   ) {}
 
-  private readonly logger = new Logger(UsersService.name);
+  private readonly logger = new Logger(UserService.name);
 
-  createUser(createUserDto: CreateUserDto): Promise<void> {
+  async createUser(createUserDto: CreateUserDto): Promise<void> {
+    this.logger.log(`Attempting to create user with email: ${createUserDto.email}`);
+    const userInDatabase = await this.prisma.user.findUnique({
+      where: {
+        email: createUserDto.email,
+      },
+    });
+    if (userInDatabase) {
+      this.logger.error(`User with email: ${createUserDto.email} already exists`);
+      throw new InternalServerErrorException({
+        error: ErrorCodes.ALREADY_EXISTS,
+      });
+    }
     return this.prisma.$transaction(async (tx: PrismaClient) => {
       try {
-        this.logger.log(`Attempting to create user with email: ${createUserDto.email}`);
-        const userInDatabase = await tx.user.findUnique({
-          where: {
-            email: createUserDto.email,
-          },
-        });
-        if (userInDatabase) {
-          this.logger.error(`User with email: ${createUserDto.email} already exists`);
-          throw new InternalServerErrorException({
-            error: ErrorCodes.ALREADY_EXISTS,
-          });
-        }
         const salt = await bcrypt.genSalt(this.configService.get('SALT_ROUNDS'));
         const hash = await bcrypt.hash(createUserDto.password, salt);
         await tx.user.create({
