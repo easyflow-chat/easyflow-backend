@@ -21,6 +21,6 @@ async function bootstrap(): Promise<void> {
       transform: true,
     }),
   );
-  await app.listen(4000);
+  await app.listen(configService.get('PORT'));
 }
 void bootstrap();

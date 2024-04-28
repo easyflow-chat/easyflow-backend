@@ -15,6 +15,7 @@ import { UserModule } from './user/user.module';
         JWT_SECRET: Joi.string().required(),
         JWT_EXPIRATION_TIME: Joi.string().required(),
         COOKIE_SECRET: Joi.string().required(),
+        PORT: Joi.number().required(),
       }),
       validationOptions: {
         allowUnknown: true,
