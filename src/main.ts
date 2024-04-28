@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
@@ -8,6 +8,7 @@ import { AppModule } from './app.module';
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+  const logger: Logger = new Logger('bootstrap');
 
   app.use(helmet());
 
@@ -22,5 +23,6 @@ async function bootstrap(): Promise<void> {
     }),
   );
   await app.listen(configService.get('PORT'));
+  logger.log(`Application is running on: ${await app.getUrl()}`);
 }
 void bootstrap();
