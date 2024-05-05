@@ -16,7 +16,7 @@ export class AuthService {
 
   async login(email: string, pass: string): Promise<string> {
     this.logger.log(`Attempting login for user with email: ${email}`);
-    let user: User | undefined;
+    let user: Omit<User, 'profilePicture'> | undefined;
     try {
       user = await this.userService.findUserByEmail(email);
     } catch (err) {

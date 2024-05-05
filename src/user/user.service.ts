@@ -35,6 +35,7 @@ export class UserService {
         await tx.user.create({
           data: {
             email: createUserDto.email,
+            name: createUserDto.name,
             password: hash,
           },
           select: {
@@ -42,7 +43,6 @@ export class UserService {
             createdAt: true,
             updatedAt: true,
             email: true,
-            password: false,
           },
         });
       } catch (err) {
@@ -59,7 +59,8 @@ export class UserService {
         createdAt: true;
         updatedAt: true;
         email: true;
-        password: false;
+        name: true;
+        bio: true;
       };
     }>
   > {
@@ -71,7 +72,8 @@ export class UserService {
         createdAt: true,
         updatedAt: true,
         email: true,
-        password: false,
+        name: true,
+        bio: true,
       },
     });
     if (!user) {
@@ -81,10 +83,31 @@ export class UserService {
     return user;
   }
 
-  async findUserByEmail(email: string): Promise<User> {
+  async findUserByEmail(email: string): Promise<
+    Prisma.UserGetPayload<{
+      select: {
+        id: true;
+        createdAt: true;
+        updatedAt: true;
+        email: true;
+        password: true;
+        name: true;
+        bio: true;
+      };
+    }>
+  > {
     this.logger.log(`Attempting to find user with email: ${email}`);
     const user = await this.prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        email: true,
+        password: true,
+        name: true,
+        bio: true,
+      },
     });
     if (!user) {
       this.logger.error(`User with email: ${email} not found`);
@@ -103,7 +126,9 @@ export class UserService {
         createdAt: true;
         updatedAt: true;
         email: true;
-        password: false;
+        name: true;
+        bio: true;
+        profilePicture: true;
       };
     }>
   > {
@@ -131,7 +156,9 @@ export class UserService {
             createdAt: true,
             updatedAt: true,
             email: true,
-            password: false,
+            name: true,
+            bio: true,
+            profilePicture: true,
           },
         });
         return user;
@@ -149,7 +176,6 @@ export class UserService {
         createdAt: true;
         updatedAt: true;
         email: true;
-        password: false;
       };
     }>
   > {
@@ -174,7 +200,6 @@ export class UserService {
             createdAt: true,
             updatedAt: true,
             email: true,
-            password: false,
           },
         });
         return user;
@@ -183,5 +208,18 @@ export class UserService {
         throw new InternalServerErrorException({ error: ErrorCodes.API_ERROR });
       }
     });
+  }
+
+  async getProfilePicture(id: User['id']): Promise<User['profilePicture']> {
+    this.logger.log(`Attempting to get profile picture for user with id: ${id}`);
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: { profilePicture: true },
+    });
+    if (!user) {
+      this.logger.error(`User with id: ${id} not found`);
+      throw new InternalServerErrorException({ error: ErrorCodes.NOT_FOUND });
+    }
+    return user.profilePicture;
   }
 }

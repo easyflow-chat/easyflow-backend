@@ -1,12 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Body, Controller, Delete, Get, Post, Put } from '@nestjs/common';
+import { Prisma, User } from '@prisma/client';
 import { CurrentUserId } from 'src/common/auth/current-user-id.decrator';
 import { Public } from 'src/common/auth/public.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 
-//TODO: change to user
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
@@ -18,7 +17,7 @@ export class UserController {
   }
 
   @Get()
-  findOne(@CurrentUserId() id: string): Promise<
+  findOne(@CurrentUserId() id: User['id']): Promise<
     Prisma.UserGetPayload<{
       select: {
         id: true;
@@ -32,9 +31,9 @@ export class UserController {
     return this.userService.findUserById(id);
   }
 
-  @Put(':id')
+  @Put()
   update(
-    @Param('id') id: string,
+    @CurrentUserId() id: User['id'],
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<
     Prisma.UserGetPayload<{
@@ -44,14 +43,15 @@ export class UserController {
         updatedAt: true;
         email: true;
         password: false;
+        profilePicture: false;
       };
     }>
   > {
     return this.userService.updateUser(id, updateUserDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string): Promise<
+  @Delete()
+  remove(@CurrentUserId() id: User['id']): Promise<
     Prisma.UserGetPayload<{
       select: {
         id: true;
@@ -63,5 +63,10 @@ export class UserController {
     }>
   > {
     return this.userService.deleteUser(id);
+  }
+
+  @Get('profile-picture')
+  getProfilePicture(@CurrentUserId() id: User['id']): Promise<User['profilePicture']> {
+    return this.userService.getProfilePicture(id);
   }
 }
