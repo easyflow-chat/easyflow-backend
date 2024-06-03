@@ -14,6 +14,7 @@ COPY --chown=appuser:appgroup ./dist /app/dist
 COPY --chown=appuser:appgroup ./node_modules /app/node_modules
 COPY --chown=appuse:appgroup ./prisma ./app/prisma
 COPY --chown=appuser:appgroup ./entrypoint.sh /app/entrypoint.sh
+COPY --chown=appuser:appgroup /.env /app/.env
 
 USER appuser
 
