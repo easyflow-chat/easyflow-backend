@@ -27,14 +27,20 @@ jobs:
     - name: Build
       run: npm run build
 
+    - name: Copy prisma client
+      run: 
+        rm -f node_modules/prisma/*.node
+        rm -rf ~/.cache/prisma
+        npm run prisma:generate
+
+    - name: Move prisma client
+      run: cp -f node_modules/prisma/*.node prisma
+
     - name: Remove packages
       run: rm -rf node_modules
 
     - name: Install prod packages
       run: npm ci --omit=dev --omit=optional
-    
-    - name: Build prisma client
-      run: npm run prisma:generate
 
     - name: Login into docker
       run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_ACCESS_TOKEN }}
