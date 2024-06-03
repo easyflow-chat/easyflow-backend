@@ -1,1 +1,1 @@
-NODE_ENV="production" node ./dist/server/main.js
+NODE_ENV="production" node ./dist/src/main.js
