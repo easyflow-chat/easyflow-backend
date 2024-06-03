@@ -15,7 +15,6 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "precommit": "npm run prettify && lint-staged --no-stash",
     "prettify": "prettier --write \"**/*.{js,jsx,ts,tsx,json}\"",
-    "prepare": "husky",
     "prisma:migrate": "npx prisma migrate deploy && prisma migrate dev",
     "prisma:generate": "prisma generate"
   },
