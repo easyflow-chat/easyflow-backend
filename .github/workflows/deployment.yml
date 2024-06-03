@@ -28,7 +28,7 @@ jobs:
       run: npm run build
 
     - name: Copy prisma client
-      run: 
+      run: |
         rm -f node_modules/prisma/*.node
         rm -rf ~/.cache/prisma
         npm run prisma:generate
