@@ -36,6 +36,9 @@ RUN rm -rf /app/enums
 RUN rm -rf /app/tsconfig.build.json
 RUN rm -rf /app/tsconfig.json
 
+#Migrating db
+RUN npx prisma migrate deploy
+
 #Uninstall yarn and npm not needed anymore
 RUN npm uninstall -g yarn
 RUN npm uninstall -g npm
