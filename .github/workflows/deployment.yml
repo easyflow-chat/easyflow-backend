@@ -42,11 +42,10 @@ jobs:
     - name: Install prod packages
       run: npm ci --omit=dev --omit=optional
 
-    - name: Login into docker
-      run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_ACCESS_TOKEN }}
-
-    - name: Build docker image
-      run: docker build -t dragon4343/easyflow-backend:latest .
+    - name: Install railway cli
+      run: npm install -g @railway/cli
     
-    - name: Push docker image
-      run: docker push dragon4343/easyflow-backend:latest
+    - name: Push to railway
+      run: railway up .
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
