@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma, PrismaClient, User } from '@prisma/client';
+import { withAccelerate } from '@prisma/extension-accelerate';
 import * as bcrypt from 'bcrypt';
 import { ErrorCodes } from 'enums/error-codes.enum';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -8,10 +9,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private prisma: PrismaClient,
-    private configService: ConfigService,
-  ) {}
+  constructor(private readonly configService: ConfigService) {}
+  private readonly prisma = new PrismaClient().$extends(withAccelerate());
 
   private readonly logger = new Logger(UserService.name);
 
@@ -28,7 +27,7 @@ export class UserService {
         error: ErrorCodes.ALREADY_EXISTS,
       });
     }
-    return this.prisma.$transaction(async (tx: PrismaClient) => {
+    return this.prisma.$transaction(async tx => {
       try {
         const salt = await bcrypt.genSalt(this.configService.get('SALT_ROUNDS'));
         const hash = await bcrypt.hash(createUserDto.password, salt);
@@ -37,6 +36,9 @@ export class UserService {
             email: createUserDto.email,
             name: createUserDto.name,
             password: hash,
+            publicKey: createUserDto.publicKey,
+            privateKey: createUserDto.privateKey,
+            iv: createUserDto.iv,
           },
           select: {
             id: true,
@@ -46,7 +48,7 @@ export class UserService {
           },
         });
       } catch (err) {
-        this.logger.error(`Failed to create user with email: ${createUserDto.email}`);
+        this.logger.error(`Failed to create user with email: ${createUserDto.email}. Error: ${err}`);
         throw new InternalServerErrorException({ error: ErrorCodes.API_ERROR });
       }
     });
@@ -61,6 +63,9 @@ export class UserService {
         email: true;
         name: true;
         bio: true;
+        publicKey: true;
+        privateKey: true;
+        iv: true;
       };
     }>
   > {
@@ -74,6 +79,9 @@ export class UserService {
         email: true,
         name: true,
         bio: true,
+        publicKey: true,
+        privateKey: true,
+        iv: true,
       },
     });
     if (!user) {
@@ -93,6 +101,9 @@ export class UserService {
         password: true;
         name: true;
         bio: true;
+        publicKey: true;
+        privateKey: true;
+        iv: true;
       };
     }>
   > {
@@ -107,6 +118,9 @@ export class UserService {
         password: true,
         name: true,
         bio: true,
+        publicKey: true,
+        privateKey: true,
+        iv: true,
       },
     });
     if (!user) {
@@ -132,7 +146,7 @@ export class UserService {
       };
     }>
   > {
-    return this.prisma.$transaction(async (tx: PrismaClient) => {
+    return this.prisma.$transaction(async tx => {
       try {
         this.logger.log(`Attempting to update user with id: ${id}`);
         const UserInDatabase = await tx.user.findUnique({
@@ -179,7 +193,7 @@ export class UserService {
       };
     }>
   > {
-    return this.prisma.$transaction(async (tx: PrismaClient) => {
+    return this.prisma.$transaction(async tx => {
       try {
         this.logger.log(`Attempting to delete user with id: ${id}`);
         const UserInDatabase = await tx.user.findUnique({

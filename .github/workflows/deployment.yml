@@ -1,0 +1,50 @@
+# This workflow deoploys the app to Railway
+
+name: Deployment
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+
+    - name: Install packages
+      run: npm ci
+
+    - name: Build
+      run: npm run build
+
+    - name: Generating prisma
+      run: 
+        rm -f node_modules/prisma/*.node
+        rm -rf ~/.cache/prisma
+        npm run prisma:generate
+        cp -f node_modules/prisma/*.node prisma
+
+    - name: Remove packages
+      run: rm -rf node_modules
+
+    - name: Install prod packages
+      run: npm ci --omit=dev --omit=optional
+
+    - name: Login into docker
+      run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+    - name: Build docker image
+      run: docker build -t dragon4343/easyflow-backend:latest .
+    
+    - name: Push docker image
+      run: docker push dragon4343/easyflow-backend:latest
