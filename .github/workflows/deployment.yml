@@ -30,12 +30,10 @@ jobs:
     - name: debug
       run: ls
 
-    - name: Generating prisma
-      run: 
-        rm -f node_modules/prisma/*.node
-        rm -rf ~/.cache/prisma
-        npm run prisma:generate
-        cp -f node_modules/prisma/*.node prisma
+    - run: rm -f node_modules/prisma/*.node
+    - run: rm -rf ~/.cache/prisma
+    - run: npm run prisma:generate
+    - run: cp -f node_modules/prisma/*.node prisma
 
     - name: Remove packages
       run: rm -rf node_modules
