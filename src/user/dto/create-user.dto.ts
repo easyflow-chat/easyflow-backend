@@ -9,4 +9,13 @@ export class CreateUserDto {
 
   @IsString()
   password: string;
+
+  @IsString()
+  publicKey: string;
+
+  @IsString()
+  privateKey: string;
+
+  @IsString()
+  iv: string;
 }

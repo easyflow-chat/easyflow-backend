@@ -8,9 +8,9 @@ import { Request } from 'express';
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    private jwtService: JwtService,
-    private reflector: Reflector,
-    private configService: ConfigService,
+    private readonly jwtService: JwtService,
+    private readonly reflector: Reflector,
+    private readonly configService: ConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -21,7 +21,7 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
     if (!token) {
-      throw new UnauthorizedException({ error: ErrorCodes.NOT_ALLOWED });
+      throw new UnauthorizedException({ error: ErrorCodes.UNAUTHORIZED });
     }
     try {
       const payload = await this.jwtService.verifyAsync<{ id: string; email: string }>(token, {
@@ -29,7 +29,7 @@ export class AuthGuard implements CanActivate {
       });
       request['userId'] = payload.id;
     } catch {
-      throw new UnauthorizedException({ error: ErrorCodes.NOT_ALLOWED });
+      throw new UnauthorizedException({ error: ErrorCodes.UNAUTHORIZED });
     }
     return true;
   }

@@ -8,12 +8,69 @@ datasource db {
 }
 
 model User {
-  id                String        @id @default(uuid())
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  email             String        @unique
-  password          String
-  name              String        @db.VarChar(255)
-  profilePicture    String?       @map("profile_picture") @db.LongText
-  bio               String?       @db.VarChar(1000)
+  id             String           @id @default(uuid())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  email          String           @unique
+  password       String
+  name           String           @db.VarChar(255)
+  profilePicture String?          @map("profile_picture") @db.LongText
+  bio            String?          @db.VarChar(1000)
+  publicKey      String           @unique @map("public_key") @db.VarChar(1000)
+  privateKey     String           @unique @map("private_key") @db.VarChar(10000)
+  iv             String           @db.VarChar(25)
+  chats          UserChat[]
+  messages       Message[]
+  chatKeys       ChatUserKeys[]
+  @@map("user")
+}
+
+
+model Chat {
+  id              String          @id @default(uuid())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  name            String          @db.VarChar(255)
+  picture         String?         @db.LongText
+  description     String?         @db.VarChar(1000)
+  messages        Message[]
+  users           UserChat[]
+  userKeys        ChatUserKeys[]
+  @@map("chat")
+}
+
+model ChatUserKeys {
+  id              String          @id @default(uuid())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  key             String          @db.VarChar(10000)
+  chatId          String
+  chat            Chat            @relation(fields: [chatId], references: [id])
+  userId          String
+  user            User            @relation(fields: [userId], references: [id])
+  @@map("chat_user_keys")
+}
+
+model UserChat {
+  id              String          @id @default(uuid())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  userId          String
+  user            User            @relation(fields: [userId], references: [id])
+  chatId          String
+  chat            Chat            @relation(fields: [chatId], references: [id])
+  @@map("user_chat")
+}
+
+model Message {
+  id              String          @id @default(uuid())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  content         String          @db.Text
+  iv              String          @db.VarChar(25)
+  chatId          String
+  chat            Chat            @relation(fields: [chatId], references: [id])
+  senderId        String
+  sender          User            @relation(fields: [senderId], references: [id])
+  @@map("message")
 }
