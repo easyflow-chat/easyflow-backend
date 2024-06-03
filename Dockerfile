@@ -27,6 +27,9 @@ RUN cp /app/node_modules/prisma/*.node prisma
 RUN rm -rf node_modules
 RUN npm ci --omit=dev --omit=optional
 
+#Migrating db
+RUN npm prisma:migrate
+
 #Romve build dependencies
 RUN rm -rf /app/src
 RUN rm -rf /app/package.json
@@ -36,8 +39,6 @@ RUN rm -rf /app/enums
 RUN rm -rf /app/tsconfig.build.json
 RUN rm -rf /app/tsconfig.json
 
-#Migrating db
-RUN npm prisma:migrate
 
 #Uninstall yarn and npm not needed anymore
 RUN npm uninstall -g yarn
