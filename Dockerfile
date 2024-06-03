@@ -25,16 +25,16 @@ RUN npm run build
 RUN npm run prisma:generate
 RUN cp /app/node_modules/prisma/*.node prisma
 RUN rm -rf node_modules
-RUN npm ci --omi=dev --omit=optional
+RUN npm ci --omit=dev --omit=optional
 
 #Romve build dependencies
 RUN rm -rf /app/src
-RUN rm -rf /app/package-lock.json
 RUN rm -rf /app/package.json
+RUN rm -rf /app/package-lock.json
 RUN rm -rf /app/.npmrc
+RUN rm -rf /app/enums
 RUN rm -rf /app/tsconfig.build.json
 RUN rm -rf /app/tsconfig.json
-RUN rm -rf /app/enums
 
 #Uninstall yarn and npm not needed anymore
 RUN npm uninstall -g yarn
