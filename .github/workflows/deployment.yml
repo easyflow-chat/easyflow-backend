@@ -42,6 +42,9 @@ jobs:
 
     - name: Login into docker
       run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_ACCESS_TOKEN }}
+    
+    - name: debug
+      run: ls -la
 
     - name: Build docker image
       run: docker build -t dragon4343/easyflow-backend:latest .
