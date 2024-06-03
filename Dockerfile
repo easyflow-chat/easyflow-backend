@@ -27,6 +27,9 @@ RUN cp /app/node_modules/prisma/*.node prisma
 RUN rm -rf node_modules
 RUN npm ci --omit=dev --omit=optional
 
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
+
 #Migrating db
 RUN npm run prisma:migrate
 
