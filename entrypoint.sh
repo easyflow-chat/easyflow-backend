@@ -1,4 +1,4 @@
 #!/bin/sh
-node migrate.js
+node dist/src/migrate.js
 
 NODE_ENV="production" node dist/src/main.js
