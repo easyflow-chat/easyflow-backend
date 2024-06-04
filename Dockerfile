@@ -34,7 +34,7 @@ RUN npm run lint
 RUN npm run build
 
 #Move primsa client
-RUN cp- f node_modules/prisma/*.node prisma
+RUN cp -f node_modules/prisma/*.node prisma
 
 #Reinstall production packages
 RUN rm -rf node_modules
