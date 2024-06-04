@@ -52,6 +52,7 @@ RUN rm -rf /.npmrc
 RUN rm -rf /enums
 RUN rm -rf /tsconfig.build.json
 RUN rm -rf /tsconfig.json
+RUN rm -rf /.eslintrc.json
 
 
 #Uninstall yarn
