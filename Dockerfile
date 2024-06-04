@@ -19,9 +19,23 @@ COPY --chown=appuser:appgroup /enums /app/enums
 COPY --chown=appuser:appgroup /tsconfig.json /app/tsconfig.json
 COPY --chown=appuser:appgroup /tsconfig.build.json /app/tsconfig.build.json
 
-#Build
+#Install packages
 RUN npm ci
+
+#Regenerate prisma client
+RUN rm -f node_modules/prisma/*.node
+RUN npm run prisma:generate
+
+#Lint
+RUN npm run lint
+
+#Build
 RUN npm run build
+
+#Move primsa client
+RUN cp- f node_modules/prisma/*.node prisma
+
+#Reinstall production packages
 RUN rm -rf node_modules
 RUN npm ci --omit=dev --omit=optional
 
