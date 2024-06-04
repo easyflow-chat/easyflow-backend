@@ -1,16 +1,18 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, PrismaClient, User } from '@prisma/client';
-import { withAccelerate } from '@prisma/extension-accelerate';
+import { Prisma, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ErrorCodes } from 'enums/error-codes.enum';
+import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly configService: ConfigService) {}
-  private readonly prisma = new PrismaClient().$extends(withAccelerate());
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   private readonly logger = new Logger(UserService.name);
 

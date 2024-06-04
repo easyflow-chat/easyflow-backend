@@ -1,12 +1,12 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import { Chat, Message, Prisma, PrismaClient, User } from '@prisma/client';
-import { withAccelerate } from '@prisma/extension-accelerate';
+import { Chat, Message, Prisma, User } from '@prisma/client';
 import { ErrorCodes } from 'enums/error-codes.enum';
+import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CreatChatDTO } from './dto/create-chat.dto';
 
 @Injectable()
 export class ChatService {
-  private readonly prisma = new PrismaClient().$extends(withAccelerate());
+  constructor(private readonly prisma: PrismaService) {}
   private readonly logger = new Logger(ChatService.name);
 
   createChat(userId: User['id'], createChatDto: CreatChatDTO): Promise<Chat> {

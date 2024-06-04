@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { ChatModule } from './chat/chat.module';
 import { AuthModule } from './common/auth/auth.module';
+import { PrismaModule } from './common/prisma/prisma.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -17,12 +18,15 @@ import { UserModule } from './user/user.module';
         JWT_EXPIRATION_TIME: Joi.string().required(),
         COOKIE_SECRET: Joi.string().required(),
         PORT: Joi.number().required(),
+        DATABASE_QUERY_LOGGING: Joi.boolean().default(false),
+        DATABASE_DEBUG_MODE: Joi.boolean().default(false),
       }),
       validationOptions: {
         allowUnknown: true,
       },
       cache: true,
     }),
+    PrismaModule,
     UserModule,
     AuthModule,
     ChatModule,
