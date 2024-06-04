@@ -18,6 +18,7 @@ COPY --chown=appuser:appgroup /.npmrc /app/.npmrc
 COPY --chown=appuser:appgroup /enums /app/enums
 COPY --chown=appuser:appgroup /tsconfig.json /app/tsconfig.json
 COPY --chown=appuser:appgroup /tsconfig.build.json /app/tsconfig.build.json
+COPY --chown=appuser:appgroup /.eslintrc.json /app/.eslintrc.json
 
 #Install packages
 RUN npm ci
