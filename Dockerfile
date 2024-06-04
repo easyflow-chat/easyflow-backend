@@ -22,30 +22,25 @@ COPY --chown=appuser:appgroup /tsconfig.build.json /app/tsconfig.build.json
 #Build
 RUN npm ci
 RUN npm run build
-RUN npm run prisma:generate
-RUN cp /app/node_modules/prisma/*.node prisma
 RUN rm -rf node_modules
 RUN npm ci --omit=dev --omit=optional
 
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
 
-#Migrating db
-RUN npm run prisma:migrate
 
 #Romve build dependencies
-RUN rm -rf /app/src
-RUN rm -rf /app/package.json
-RUN rm -rf /app/package-lock.json
-RUN rm -rf /app/.npmrc
-RUN rm -rf /app/enums
-RUN rm -rf /app/tsconfig.build.json
-RUN rm -rf /app/tsconfig.json
+RUN rm -rf /src
+RUN rm -rf /package.json
+RUN rm -rf /package-lock.json
+RUN rm -rf /.npmrc
+RUN rm -rf /enums
+RUN rm -rf /tsconfig.build.json
+RUN rm -rf /tsconfig.json
 
 
-#Uninstall yarn and npm not needed anymore
+#Uninstall yarn
 RUN npm uninstall -g yarn
-RUN npm uninstall -g npm
 
 USER appuser
 
