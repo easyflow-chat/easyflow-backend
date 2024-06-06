@@ -1,4 +1,4 @@
-FROM node:20-alpine as final
+FROM node:20-alpine as base
 
 #Uninstall yarn
 RUN npm uninstall -g yarn
@@ -28,6 +28,7 @@ RUN npm ci
 
 #Regenerate prisma client
 RUN rm -f node_modules/prisma/*.node
+RUN rm -rf ~/.cache/prisma
 RUN npm run prisma:generate
 
 #Lint
@@ -41,7 +42,7 @@ RUN cp -f node_modules/prisma/*.node prisma
 
 #Reinstall production packages
 RUN rm -rf node_modules
-RUN npm ci --omit=dev --omit=optional
+RUN npm ci --omit=dev
 
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
