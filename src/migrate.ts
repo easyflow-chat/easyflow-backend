@@ -64,6 +64,9 @@ const findPrismaSchema = async (): Promise<string | null> => {
 const findPrismaCli = async (): Promise<string | null> => {
   console.log('Looking for prisma CLI..');
 
+  const fromPredefinedDir = '/app/node_modules/prisma';
+  if (await probe(fromPredefinedDir)) return fromPredefinedDir;
+
   const fromCurrentDir = join(__dirname, 'node_modules', '.bin', 'prisma');
   if (await probe(fromCurrentDir)) return fromCurrentDir;
 
