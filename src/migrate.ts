@@ -42,13 +42,10 @@ const probe = async (path: string): Promise<boolean> => {
 const findPrismaSchema = async (): Promise<string | null> => {
   console.log('Looking for prisma schema..');
 
-  const fromPredefinedDir = '/app/prisma/schema.prisma';
-  if (await probe(fromPredefinedDir)) return fromPredefinedDir;
-
   const fromCurrentDir = join(__dirname, 'prisma', 'schema.prisma');
   if (await probe(fromCurrentDir)) return fromCurrentDir;
 
-  const fromParentDir = join(__dirname, '..', 'prisma', 'schema.prisma');
+  const fromParentDir = join(__dirname, '../..', 'prisma', 'schema.prisma');
   if (await probe(fromParentDir)) return fromParentDir;
 
   console.error(`Could not find prisma directory`);
@@ -64,13 +61,10 @@ const findPrismaSchema = async (): Promise<string | null> => {
 const findPrismaCli = async (): Promise<string | null> => {
   console.log('Looking for prisma CLI..');
 
-  const fromPredefinedDir = '/app/node_modules/prisma';
-  if (await probe(fromPredefinedDir)) return fromPredefinedDir;
-
   const fromCurrentDir = join(__dirname, 'node_modules', '.bin', 'prisma');
   if (await probe(fromCurrentDir)) return fromCurrentDir;
 
-  const fromParentDir = join(__dirname, '..', 'node_modules', '.bin', 'prisma');
+  const fromParentDir = join(__dirname, '../..', 'node_modules', '.bin', 'prisma');
   if (await probe(fromParentDir)) return fromParentDir;
 
   console.error(`Could not find prisma CLI`);
