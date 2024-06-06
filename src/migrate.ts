@@ -45,7 +45,7 @@ const findPrismaSchema = async (): Promise<string | null> => {
   const fromCurrentDir = join(__dirname, 'prisma', 'schema.prisma');
   if (await probe(fromCurrentDir)) return fromCurrentDir;
 
-  const fromParentDir = join(__dirname, '..', 'prisma', 'schema.prisma');
+  const fromParentDir = join(__dirname, '../..', 'prisma', 'schema.prisma');
   if (await probe(fromParentDir)) return fromParentDir;
 
   console.error(`Could not find prisma directory`);
