@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { ChatModule } from './chat/chat.module';
 import { AuthModule } from './common/auth/auth.module';
-import { PrismaModule } from './common/prisma/prisma.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -26,7 +25,6 @@ import { UserModule } from './user/user.module';
       },
       cache: true,
     }),
-    PrismaModule,
     UserModule,
     AuthModule,
     ChatModule,
