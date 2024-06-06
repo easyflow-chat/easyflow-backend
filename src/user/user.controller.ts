@@ -12,7 +12,16 @@ export class UserController {
 
   @Public()
   @Post('signup')
-  create(@Body() createUserDto: CreateUserDto): Promise<void> {
+  create(@Body() createUserDto: CreateUserDto): Promise<
+    Prisma.UserGetPayload<{
+      select: {
+        id: true;
+        createdAt: true;
+        updatedAt: true;
+        email: true;
+      };
+    }>
+  > {
     return this.userService.createUser(createUserDto);
   }
 
@@ -25,6 +34,12 @@ export class UserController {
         updatedAt: true;
         email: true;
         password: false;
+        name: true;
+        profilePicture: false;
+        bio: true;
+        publicKey: true;
+        privateKey: true;
+        iv: true;
       };
     }>
   > {

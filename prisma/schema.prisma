@@ -8,28 +8,30 @@ datasource db {
 }
 
 model User {
-  id             String           @id @default(uuid())
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  email          String           @unique
-  password       String
-  name           String           @db.VarChar(255)
-  profilePicture String?          @map("profile_picture") @db.LongText
-  bio            String?          @db.VarChar(1000)
-  publicKey      String           @unique @map("public_key") @db.VarChar(1000)
-  privateKey     String           @unique @map("private_key") @db.VarChar(10000)
-  iv             String           @db.VarChar(25)
-  chats          UserChat[]
-  messages       Message[]
-  chatKeys       ChatUserKeys[]
+  id              String           @id @default(uuid())
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  deletedAt       DateTime?        @map("deleted_at")
+  email           String           @unique
+  password        String
+  name            String           @db.VarChar(255)
+  profilePicture  String?          @map("profile_picture") @db.LongText
+  bio             String?          @db.VarChar(1000)
+  publicKey       String           @unique @map("public_key") @db.VarChar(1000)
+  privateKey      String           @unique @map("private_key") @db.VarChar(10000)
+  iv              String           @db.VarChar(25)
+  chats           UserChat[]
+  messages        Message[]
+  chatKeys        ChatUserKeys[]
   @@map("user")
 }
 
 
 model Chat {
   id              String          @id @default(uuid())
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  deletedAt       DateTime?       @map("deleted_at")
   name            String          @db.VarChar(255)
   picture         String?         @db.LongText
   description     String?         @db.VarChar(1000)
@@ -41,8 +43,9 @@ model Chat {
 
 model ChatUserKeys {
   id              String          @id @default(uuid())
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  deletedAt       DateTime?       @map("deleted_at")
   key             String          @db.VarChar(10000)
   chatId          String
   chat            Chat            @relation(fields: [chatId], references: [id])
@@ -53,8 +56,9 @@ model ChatUserKeys {
 
 model UserChat {
   id              String          @id @default(uuid())
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  deletedAt       DateTime?       @map("deleted_at")
   userId          String
   user            User            @relation(fields: [userId], references: [id])
   chatId          String
@@ -64,8 +68,9 @@ model UserChat {
 
 model Message {
   id              String          @id @default(uuid())
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  deletedAt       DateTime?       @map("deleted_at")
   content         String          @db.Text
   iv              String          @db.VarChar(25)
   chatId          String

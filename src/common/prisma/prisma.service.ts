@@ -1,9 +1,9 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
+import { withAccelerate } from '@prisma/extension-accelerate';
 import { Mutex, MutexInterface, withTimeout } from 'async-mutex';
 
 import { ConfigService } from '@nestjs/config';
-import { withAccelerate } from '@prisma/extension-accelerate';
 import { Timer } from '../timer/timer';
 
 @Injectable()

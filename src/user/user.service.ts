@@ -16,7 +16,16 @@ export class UserService {
 
   private readonly logger = new Logger(UserService.name);
 
-  async createUser(createUserDto: CreateUserDto): Promise<void> {
+  async createUser(createUserDto: CreateUserDto): Promise<
+    Prisma.UserGetPayload<{
+      select: {
+        id: true;
+        createdAt: true;
+        updatedAt: true;
+        email: true;
+      };
+    }>
+  > {
     this.logger.log(`Attempting to create user with email: ${createUserDto.email}`);
     const userInDatabase = await this.prisma.user.findUnique({
       where: {
@@ -33,7 +42,7 @@ export class UserService {
       try {
         const salt = await bcrypt.genSalt(this.configService.get('SALT_ROUNDS'));
         const hash = await bcrypt.hash(createUserDto.password, salt);
-        await tx.user.create({
+        return tx.user.create({
           data: {
             email: createUserDto.email,
             name: createUserDto.name,
@@ -63,7 +72,9 @@ export class UserService {
         createdAt: true;
         updatedAt: true;
         email: true;
+        password: false;
         name: true;
+        profilePicture: false;
         bio: true;
         publicKey: true;
         privateKey: true;
@@ -79,7 +90,9 @@ export class UserService {
         createdAt: true,
         updatedAt: true,
         email: true,
+        password: false,
         name: true,
+        profilePicture: false,
         bio: true,
         publicKey: true,
         privateKey: true,
@@ -93,37 +106,10 @@ export class UserService {
     return user;
   }
 
-  async findUserByEmail(email: string): Promise<
-    Prisma.UserGetPayload<{
-      select: {
-        id: true;
-        createdAt: true;
-        updatedAt: true;
-        email: true;
-        password: true;
-        name: true;
-        bio: true;
-        publicKey: true;
-        privateKey: true;
-        iv: true;
-      };
-    }>
-  > {
+  async findUserByEmail(email: string): Promise<User> {
     this.logger.log(`Attempting to find user with email: ${email}`);
     const user = await this.prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-        email: true,
-        password: true,
-        name: true,
-        bio: true,
-        publicKey: true,
-        privateKey: true,
-        iv: true,
-      },
     });
     if (!user) {
       this.logger.error(`User with email: ${email} not found`);

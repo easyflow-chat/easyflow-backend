@@ -1,8 +1,9 @@
 -- CreateTable
 CREATE TABLE `user` (
     `id` VARCHAR(191) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+    `deleted_at` DATETIME(3) NULL,
     `email` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
@@ -21,8 +22,9 @@ CREATE TABLE `user` (
 -- CreateTable
 CREATE TABLE `chat` (
     `id` VARCHAR(191) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+    `deleted_at` DATETIME(3) NULL,
     `name` VARCHAR(255) NOT NULL,
     `picture` LONGTEXT NULL,
     `description` VARCHAR(1000) NULL,
@@ -33,8 +35,9 @@ CREATE TABLE `chat` (
 -- CreateTable
 CREATE TABLE `chat_user_keys` (
     `id` VARCHAR(191) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+    `deleted_at` DATETIME(3) NULL,
     `key` VARCHAR(10000) NOT NULL,
     `chatId` VARCHAR(191) NOT NULL,
     `userId` VARCHAR(191) NOT NULL,
@@ -45,8 +48,9 @@ CREATE TABLE `chat_user_keys` (
 -- CreateTable
 CREATE TABLE `user_chat` (
     `id` VARCHAR(191) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+    `deleted_at` DATETIME(3) NULL,
     `userId` VARCHAR(191) NOT NULL,
     `chatId` VARCHAR(191) NOT NULL,
 
@@ -56,8 +60,9 @@ CREATE TABLE `user_chat` (
 -- CreateTable
 CREATE TABLE `message` (
     `id` VARCHAR(191) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+    `deleted_at` DATETIME(3) NULL,
     `content` TEXT NOT NULL,
     `iv` VARCHAR(25) NOT NULL,
     `chatId` VARCHAR(191) NOT NULL,
