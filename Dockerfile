@@ -26,26 +26,18 @@ COPY --chown=appuser:appgroup /tsconfig.json /app/tsconfig.json
 #Install packages
 RUN npm ci
 
-#Regenerate prisma client
-RUN rm -f node_modules/prisma/*.node
-RUN rm -rf ~/.cache/prisma
-RUN npm run prisma:generate
-
 #Lint
 RUN npm run lint
 
 #Build
 RUN npm run build
 
-#Move primsa client
-RUN cp -f node_modules/prisma/*.node prisma
-
 #Reinstall production packages
 RUN rm -rf node_modules
 RUN npm ci --omit=dev
 
-ARG DATABASE_URL
-ENV DATABASE_URL=${DATABASE_URL}
+#Generate @prisma/client
+RUN npm run prisma:generate
 
 
 #Romve build dependencies
