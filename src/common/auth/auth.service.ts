@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -8,6 +9,7 @@ import { UserService } from 'src/user/user.service';
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly configService: ConfigService,
     private userService: UserService,
     private jwtService: JwtService,
   ) {}
@@ -38,6 +40,6 @@ export class AuthService {
       });
     }
     const payload = { id: user.id, email: user.email };
-    return this.jwtService.signAsync(payload);
+    return this.jwtService.signAsync(payload, { secret: this.configService.get('JWT_SECRET') });
   }
 }

@@ -19,6 +19,7 @@ import { UserModule } from './user/user.module';
         PORT: Joi.number().required(),
         DATABASE_QUERY_LOGGING: Joi.boolean().default(false),
         DATABASE_DEBUG_MODE: Joi.boolean().default(false),
+        FRONTEND_URL: Joi.string().required(),
       }),
       validationOptions: {
         allowUnknown: true,

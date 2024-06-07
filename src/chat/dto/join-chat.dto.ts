@@ -1,19 +1,11 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class SendMessageDTO {
+export class JoinChatDTO {
   @IsString()
   @IsNotEmpty()
   userId: string;
 
   @IsString()
   @IsNotEmpty()
-  content: string;
-
-  @IsString()
-  @IsNotEmpty()
   chatId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  iv: string;
 }

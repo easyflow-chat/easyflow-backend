@@ -47,9 +47,9 @@ model ChatUserKeys {
   updatedAt       DateTime        @updatedAt @map("updated_at")
   deletedAt       DateTime?       @map("deleted_at")
   key             String          @db.Text
-  chatId          String
+  chatId          String          @map("chat_id")
   chat            Chat            @relation(fields: [chatId], references: [id])
-  userId          String
+  userId          String          @map("user_id")
   user            User            @relation(fields: [userId], references: [id])
   @@map("chat_user_keys")
 }
@@ -59,9 +59,9 @@ model UserChat {
   createdAt       DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @updatedAt @map("updated_at")
   deletedAt       DateTime?       @map("deleted_at")
-  userId          String
+  userId          String          @map("user_id")
   user            User            @relation(fields: [userId], references: [id])
-  chatId          String
+  chatId          String          @map("chat_id")
   chat            Chat            @relation(fields: [chatId], references: [id])
   @@map("user_chat")
 }
@@ -73,9 +73,9 @@ model Message {
   deletedAt       DateTime?       @map("deleted_at")
   content         String          @db.Text
   iv              String          @db.VarChar(25)
-  chatId          String
+  chatId          String          @map("chat_id")
   chat            Chat            @relation(fields: [chatId], references: [id])
-  senderId        String
+  senderId        String          @map("sender_id")
   sender          User            @relation(fields: [senderId], references: [id])
   @@map("message")
 }
