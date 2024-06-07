@@ -56,7 +56,7 @@ RUN npm uninstall -g npm
 USER appuser
 
 LABEL org.opencontainers.image.authors="nico.benninger43@gmail.com"
-LABEL org.opencontainers.image.source="https://github.com/Dragon437619/easyflow-backend"
+LABEL org.opencontainers.image.source="https://github.com/easyflow-chat/easyflow-backend"
 LABEL org.opencontainers.image.title="Backend Frontend"
 LABEL org.opencontainers.image.description="Backend for Easyflow chat application"
 

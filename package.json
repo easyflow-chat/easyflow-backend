@@ -25,6 +25,8 @@
     "@nestjs/jwt": "10.2.0",
     "@nestjs/mapped-types": "2.0.5",
     "@nestjs/platform-express": "10.3.8",
+    "@nestjs/platform-socket.io": "^10.3.9",
+    "@nestjs/websockets": "^10.3.9",
     "@prisma/client": "5.14.0",
     "@prisma/extension-accelerate": "1.1.0",
     "@types/node": "20.13.0",
