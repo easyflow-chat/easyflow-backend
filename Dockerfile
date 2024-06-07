@@ -40,7 +40,7 @@ RUN npm ci --omit=dev
 RUN npm run prisma:generate
 
 #For debuging purposes
-RUN ls -la
+RUN ls ./node_modules
 
 
 #Romve build dependencies
