@@ -61,10 +61,10 @@ const findPrismaSchema = async (): Promise<string | null> => {
 const findPrismaCli = async (): Promise<string | null> => {
   console.log('Looking for prisma CLI..');
 
-  const fromCurrentDir = join(__dirname, 'node_modules', '.bin', 'prisma');
+  const fromCurrentDir = join(__dirname, 'node_modules', 'prisma');
   if (await probe(fromCurrentDir)) return fromCurrentDir;
 
-  const fromParentDir = join(__dirname, '..', 'node_modules', '.bin', 'prisma');
+  const fromParentDir = join(__dirname, '..', 'node_modules', 'prisma');
   if (await probe(fromParentDir)) return fromParentDir;
 
   console.error(`Could not find prisma CLI`);
