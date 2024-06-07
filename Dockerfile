@@ -39,6 +39,9 @@ RUN npm ci --omit=dev
 #Generate @prisma/client
 RUN npm run prisma:generate
 
+#For debuging purposes
+RUN ls -la
+
 
 #Romve build dependencies
 RUN rm -rf /enums
