@@ -17,8 +17,8 @@ model User {
   name            String           @db.VarChar(255)
   profilePicture  String?          @map("profile_picture") @db.LongText
   bio             String?          @db.VarChar(1000)
-  publicKey       String           @unique @map("public_key") @db.VarChar(1000)
-  privateKey      String           @unique @map("private_key") @db.VarChar(10000)
+  publicKey       String           @map("public_key") @db.Text
+  privateKey      String           @map("private_key") @db.Text
   iv              String           @db.VarChar(25)
   chats           UserChat[]
   messages        Message[]
@@ -34,7 +34,7 @@ model Chat {
   deletedAt       DateTime?       @map("deleted_at")
   name            String          @db.VarChar(255)
   picture         String?         @db.LongText
-  description     String?         @db.VarChar(1000)
+  description     String?         @db.Text
   messages        Message[]
   users           UserChat[]
   userKeys        ChatUserKeys[]
@@ -46,7 +46,7 @@ model ChatUserKeys {
   createdAt       DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @updatedAt @map("updated_at")
   deletedAt       DateTime?       @map("deleted_at")
-  key             String          @db.VarChar(10000)
+  key             String          @db.Text
   chatId          String
   chat            Chat            @relation(fields: [chatId], references: [id])
   userId          String

@@ -9,13 +9,11 @@ CREATE TABLE `user` (
     `name` VARCHAR(255) NOT NULL,
     `profile_picture` LONGTEXT NULL,
     `bio` VARCHAR(1000) NULL,
-    `public_key` VARCHAR(1000) NOT NULL,
-    `private_key` VARCHAR(10000) NOT NULL,
+    `public_key` TEXT NOT NULL,
+    `private_key` TEXT NOT NULL,
     `iv` VARCHAR(25) NOT NULL,
 
     UNIQUE INDEX `user_email_key`(`email`),
-    UNIQUE INDEX `user_public_key_key`(`public_key`),
-    UNIQUE INDEX `user_private_key_key`(`private_key`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -27,7 +25,7 @@ CREATE TABLE `chat` (
     `deleted_at` DATETIME(3) NULL,
     `name` VARCHAR(255) NOT NULL,
     `picture` LONGTEXT NULL,
-    `description` VARCHAR(1000) NULL,
+    `description` TEXT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -38,7 +36,7 @@ CREATE TABLE `chat_user_keys` (
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
     `deleted_at` DATETIME(3) NULL,
-    `key` VARCHAR(10000) NOT NULL,
+    `key` TEXT NOT NULL,
     `chatId` VARCHAR(191) NOT NULL,
     `userId` VARCHAR(191) NOT NULL,
 
