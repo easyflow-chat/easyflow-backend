@@ -405,7 +405,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
     const res = await this.#internalClient.$queryRawUnsafe(query.replace("'?'", `'${encodedLock}'`));
 
-    console.debug(JSON.stringify(res));
+    this.#logger.debug(res);
     return res as T[];
   }
 
