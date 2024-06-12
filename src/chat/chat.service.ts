@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import { Chat, Message, Prisma, User } from '@prisma/client';
+import { Chat, ChatUserKeys, Message, Prisma, User } from '@prisma/client';
 import { ErrorCodes } from 'enums/error-codes.enum';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CreatChatDTO } from './dto/create-chat.dto';
@@ -72,6 +72,15 @@ export class ChatService {
     });
   }
 
+  getChatKeys(userId: User['id']): Promise<ChatUserKeys[]> {
+    this.logger.log(`Finding chat keys for user with id: ${userId}`);
+    return this.prisma.chatUserKeys.findMany({
+      where: {
+        userId,
+      },
+    });
+  }
+
   getChatById(
     userId: User['id'],
     chatId: Chat['id'],
@@ -104,12 +113,6 @@ export class ChatService {
             };
           };
         };
-        userKeys: {
-          select: {
-            key: true;
-            userId: true;
-          };
-        };
       };
     }>
   > {
@@ -135,6 +138,8 @@ export class ChatService {
                 },
               },
             },
+            // TODO: Add pagination
+            take: 50,
             orderBy: {
               createdAt: 'desc',
             },
@@ -148,12 +153,6 @@ export class ChatService {
                   profilePicture: true,
                 },
               },
-            },
-          },
-          userKeys: {
-            select: {
-              key: true,
-              userId: true,
             },
           },
         },

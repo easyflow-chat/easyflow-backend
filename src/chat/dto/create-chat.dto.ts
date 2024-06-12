@@ -1,6 +1,7 @@
-import { IsArray, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsDefined, IsOptional, IsString } from 'class-validator';
 
 export class CreatChatDTO {
+  @IsDefined()
   @IsString()
   name: string;
 
@@ -12,11 +13,12 @@ export class CreatChatDTO {
   @IsString()
   description: string | undefined;
 
+  @IsDefined()
   @IsArray()
   @IsString({ each: true })
   users: string[];
 
+  @IsDefined()
   @IsArray()
-  @IsObject({ each: true })
   userKeys: { key: string; userId: string }[];
 }

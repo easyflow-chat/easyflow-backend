@@ -1,4 +1,4 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
@@ -8,9 +8,14 @@ import { AppModule } from './app.module';
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
-  const logger: Logger = new Logger('bootstrap');
 
   app.use(helmet());
+  app.use(
+    helmet.hsts({
+      maxAge: 31536000,
+      includeSubDomains: true,
+    }),
+  );
 
   app.use(cookieParser(configService.get('COOKIE_SECRET')));
 
@@ -18,11 +23,18 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
       transform: true,
+      whitelist: true,
+      forbidUnknownValues: true,
+      skipNullProperties: false,
+      skipMissingProperties: false,
+      transformOptions: {
+        exposeDefaultValues: true,
+        enableImplicitConversion: true,
+      },
     }),
   );
+
   await app.listen(configService.get('PORT'));
-  logger.log(`Application is running on: ${await app.getUrl()}`);
 }
 void bootstrap();

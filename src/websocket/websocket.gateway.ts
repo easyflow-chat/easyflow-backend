@@ -15,8 +15,8 @@ import { Message } from '@prisma/client';
 import { parse } from 'cookie';
 import { signedCookie } from 'cookie-parser';
 import { Server, Socket } from 'socket.io';
-import { ChatService } from './chat.service';
-import { SendMessageDTO } from './dto/send-message.dto';
+import { ChatService } from 'src/chat/chat.service';
+import { SendMessageDTO } from 'src/chat/dto/send-message.dto';
 
 @WebSocketGateway({
   cors: {
@@ -25,14 +25,14 @@ import { SendMessageDTO } from './dto/send-message.dto';
     credentials: true,
   },
 })
-export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly configService: ConfigService,
     private readonly chatService: ChatService,
     private readonly jwtService: JwtService,
   ) {}
 
-  private readonly logger = new Logger(ChatGateway.name);
+  private readonly logger = new Logger(WebsocketGateway.name);
 
   @WebSocketServer() server: Server;
 
@@ -42,7 +42,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   async handleConnection(client: Socket): Promise<void> {
     const { sockets } = this.server.sockets;
-    this.logger.debug(`Number of connected clients: ${sockets.size}`);
 
     const cookie = parse(client.handshake.headers.cookie).access_token;
 
@@ -56,6 +55,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         });
         client.handshake.auth.userId = decoded.id;
         this.logger.log(`User ${decoded.id} connected`);
+        this.logger.debug(`Number of connected clients: ${sockets.size}`);
         const chats = await this.chatService.getChatPreviews(decoded.id);
         chats.forEach(chat => client.join(chat.id));
       } catch (err) {

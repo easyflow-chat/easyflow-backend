@@ -4,6 +4,8 @@ import * as Joi from 'joi';
 import { ChatModule } from './chat/chat.module';
 import { AuthModule } from './common/auth/auth.module';
 import { UserModule } from './user/user.module';
+import { WebsocketModule } from './websocket/websocket.module';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { UserModule } from './user/user.module';
         DATABASE_QUERY_LOGGING: Joi.boolean().default(false),
         DATABASE_DEBUG_MODE: Joi.boolean().default(false),
         FRONTEND_URL: Joi.string().required(),
+        CERTIFICATE: Joi.string().required(),
+        PRIVATE_KEY: Joi.string().required(),
       }),
       validationOptions: {
         allowUnknown: true,
@@ -29,6 +33,8 @@ import { UserModule } from './user/user.module';
     UserModule,
     AuthModule,
     ChatModule,
+    WebsocketModule,
+    S3Module,
   ],
 })
 export class AppModule {}
