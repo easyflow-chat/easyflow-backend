@@ -5,13 +5,11 @@ repos:
         name: gofmt
         entry: gofmt -w .
         language: system
-        types: [go]
         pass_filenames: false
 
       - id: go-mod-tidy
         name: go-mod-tidy
         entry: go mod tidy
         language: system
-        types: [go]
         pass_filenames: false
         require_serial: true
