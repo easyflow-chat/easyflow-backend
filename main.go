@@ -1,8 +1,12 @@
 package main
 
 import (
-	"easflow-backend/config"
-	"easflow-backend/database"
+	"easyflow-backend/config"
+	"easyflow-backend/database"
+	"easyflow-backend/middleware"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -11,8 +15,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	dbInst.Acquire()
-	dbInst.Migrate()
 
-	defer dbInst.Release() // En	sure to release when done
+	dbInst.Acquire()
+	router := gin.Default()
+	router.Use(cors.Default())
+	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))
+
+	router.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "pong",
+		})
+	})
+
+	router.Run(":" + cfg.Port)
+
+	defer dbInst.Release()
 }

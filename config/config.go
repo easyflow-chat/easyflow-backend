@@ -16,6 +16,7 @@ type Config struct {
 	//env
 	DatabaseURL string
 	SaltRounds  int
+	Port        string
 }
 
 func getEnv(key, fallback string) string {
@@ -46,5 +47,6 @@ func LoadDefaultConfig() *Config {
 		},
 		DatabaseURL: getEnv("DATABASE_URL", ""),
 		SaltRounds:  getEnvInt("SALT_OR_ROUNDS", 10),
+		Port:        getEnv("PORT", "8080"),
 	}
 }
