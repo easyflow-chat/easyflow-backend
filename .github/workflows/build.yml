@@ -1,0 +1,45 @@
+name: Build Project
+
+# Trigger the workflow on push or pull request to "main" branch or tags that match 'v*'
+on:
+  push:
+    branches:
+      - main
+      - release/*
+      - feature/migration-go
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-go-modules
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Build
+        run: go build -o easyflow-backend
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: easyflow-backend
+          path: easyflow-backend
+
+      - name: Test
+        run: go test ./...
