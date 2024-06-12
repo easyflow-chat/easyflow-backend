@@ -34,6 +34,8 @@ func main() {
 		ProfilePicture: nil,
 		Bio:            nil,
 		Iv:             "123456789",
+		PublicKey:      "publickey",
+		PrivateKey:     "privatekey",
 		Chats:          nil,
 	})
 
