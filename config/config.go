@@ -6,9 +6,14 @@ import (
 	"strconv"
 
 	"github.com/joho/godotenv"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type Config struct {
+	//gorm
+	GormConfig gorm.Config
+	//env
 	DatabaseURL string
 	SaltRounds  int
 }
@@ -36,6 +41,9 @@ func LoadDefaultConfig() *Config {
 	}
 
 	return &Config{
+		GormConfig: gorm.Config{
+			Logger: logger.Default.LogMode(logger.Error),
+		},
 		DatabaseURL: getEnv("DATABASE_URL", ""),
 		SaltRounds:  getEnvInt("SALT_OR_ROUNDS", 10),
 	}
