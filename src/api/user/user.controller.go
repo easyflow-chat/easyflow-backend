@@ -14,6 +14,7 @@ import (
 func RegisterUserEndpoints(r *gin.RouterGroup) {
 	r.Use(middleware.LoggerMiddleware("UserModul", common.FatalLevel))
 	r.POST("/signup", CreateUserController)
+	r.GET("/:id", GetUserController)
 }
 
 func CreateUserController(c *gin.Context) {
@@ -46,6 +47,27 @@ func CreateUserController(c *gin.Context) {
 	}
 
 	user, err := CreateUser(db.(*gorm.DB), &payload)
+	if err != nil {
+		c.JSON(err.Code, err)
+		return
+	}
+
+	c.JSON(200, user)
+}
+
+func GetUserController(c *gin.Context) {
+	id := c.Param("id")
+
+	db, ok := c.Get("db")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code: http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+	}
+
+	user, err := GetUserById(db.(*gorm.DB), &id)
+
 	if err != nil {
 		c.JSON(err.Code, err)
 		return

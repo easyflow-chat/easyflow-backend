@@ -12,6 +12,17 @@ type CreateUserRequest struct {
 type CreateUserResponse struct {
 	Id        string `json:"id"`
 	CreatedAt string `json:"created_at"`
-	UpdateAt  string `json:"update_at"`
+	UpdatedAt string `json:"update_at"`
 	Email     string `json:"email"`
+}
+
+type GetUserResponse struct {
+	Id        string `json:"id"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	Email     string `json:"email"`
+	Name      string `json:"name"`
+	Bio       string `json:"bio"`
+	Iv        string `json:"iv"`
+	PublicKey string `json:"public_key"`
 }

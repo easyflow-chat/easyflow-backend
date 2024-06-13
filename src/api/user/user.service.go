@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -42,7 +43,22 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest) (*CreateUserResponse, *
 	return &CreateUserResponse{
 		Id:        user.Id,
 		CreatedAt: user.CreatedAt.String(),
-		UpdateAt:  user.UpdatedAt.String(),
+		UpdatedAt:  user.UpdatedAt.String(),
 		Email:     user.Email,
+	}, nil
+}
+
+func GetUserById(db *gorm.DB, id *string) (*database.User, *api.ApiError) {
+	fmt.Println("Attempting to get user with email: ", id)
+	var user database.User
+	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
+		return nil, &api.ApiError{
+			Code: http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
+	}
+
+	return &CreateUserResponse{
+
 	}, nil
 }
