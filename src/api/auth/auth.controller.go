@@ -61,8 +61,5 @@ func LoginController(c *gin.Context) {
 	c.SetCookie("access_token", jwtPair.AccessToken, TOK_TTL, "/", "", false, true)
 	c.SetCookie("refresh_token", jwtPair.RefreshToken, TOK_TTL, "/", "", false, true)
 
-	c.JSON(200, &LoginResponse{
-		AccessToken:  jwtPair.AccessToken,
-		RefreshToken: jwtPair.RefreshToken,
-	})
+	c.JSON(200, &gin.H{})
 }

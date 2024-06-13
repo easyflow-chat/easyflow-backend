@@ -27,6 +27,19 @@ func generateJwt(cfg *common.Config, payload *JWTPayload) (string, error) {
 	return token, nil
 }
 
+func ValidateToken(cfg *common.Config, token string) (*JWTPayload, error) {
+	claims := &JWTPayload{}
+	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(cfg.JwtSecret), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return claims, nil
+}
+
 func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPair, *api.ApiError) {
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err != nil {
@@ -55,7 +68,6 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPa
 			Issuer:    "easyflow",
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
-		// Additional fields
 		UserId:      user.Id,
 		Email:       user.Email,
 		RefreshRand: &unique,

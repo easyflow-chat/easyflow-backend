@@ -39,5 +39,17 @@ func main() {
 		auth.RegisterAuthEndpoints(authEndpoints)
 	}
 
+	testAuthEndpoints := router.Group("/test")
+	{
+		testAuthEndpoints.Use(auth.AuthGuard())
+		func(r *gin.RouterGroup) {
+			r.GET("/auth", func(c *gin.Context) {
+				c.JSON(200, gin.H{
+					"message": "success",
+				})
+			})
+		}(testAuthEndpoints)
+	}
+
 	router.Run(":" + cfg.Port)
 }
