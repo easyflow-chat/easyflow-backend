@@ -23,14 +23,23 @@ jobs:
           go-version: '1.22.x'
 
       - name: Cache Go modules
+        id: cache-go-modules
         uses: actions/cache@v2
-        env:
-          cache-name: cache-go-modules
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+
+      - name: Check Cache Hit
+        run: |
+          if [ "${{ steps.cache-go-modules.outputs.cache-hit }}" == "true" ]; then
+            echo "Cache hit, skipping some steps..."
+          else
+            echo "Cache miss, performing additional steps..."
+            go mod tidy
+            go mod download
+          fi      
 
       - name: Build
         run: |
