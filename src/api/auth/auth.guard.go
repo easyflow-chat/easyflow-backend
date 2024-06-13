@@ -63,7 +63,7 @@ func AuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		if payload.IsAccess != true {
+		if !payload.IsAccess {
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
