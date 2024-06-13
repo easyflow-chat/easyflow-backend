@@ -2,7 +2,9 @@ package auth
 
 import (
 	"easyflow-backend/src/api"
+	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
+	"easyflow-backend/src/middleware"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -48,8 +50,8 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("access_token", jwtPair.AccessToken, 60*60*24, "/", "", false, true)
-	c.SetCookie("refresh_token", jwtPair.RefreshToken, 60*60*24*7, "/", "", false, true)
+	c.SetCookie("access_token", jwtPair.AccessToken, TOK_TTL, "/", "", false, true)
+	c.SetCookie("refresh_token", jwtPair.RefreshToken, TOK_TTL, "/", "", false, true)
 
 	c.JSON(200, gin.H{})
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"easyflow-backend/src/api/auth"
 	"easyflow-backend/src/api/user"
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/database"
@@ -30,6 +31,11 @@ func main() {
 	userEndpoints := router.Group("/user")
 	{
 		user.RegisterUserEndpoints(userEndpoints)
+	}
+
+	authEndpoints := router.Group("/auth")
+	{
+		auth.RegisterAuthEndpoints(authEndpoints)
 	}
 
 	router.Run(":" + cfg.Port)
