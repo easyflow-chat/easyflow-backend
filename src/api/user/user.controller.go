@@ -6,7 +6,7 @@ import (
 )
 
 func RegisterUserEndpoints(r *gin.RouterGroup) {
-	r.POST("/users/signup", CreateUserController)
+	r.POST("/signup", CreateUserController)
 }
 
 func CreateUserController(c *gin.Context) {
