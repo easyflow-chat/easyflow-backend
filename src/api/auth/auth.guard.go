@@ -5,8 +5,10 @@ import (
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func AuthGuard() gin.HandlerFunc {
@@ -44,7 +46,7 @@ func AuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		if payload.ExpiresAt < int64(time.Now().Unix()) {
+		if payload.ExpiresAt.Time.Before(time.Now()) {
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
