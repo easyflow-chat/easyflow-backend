@@ -8,4 +8,9 @@ import (
 
 func RegisterAuthEndpoints(r *gin.RouterGroup) {
 	r.Use(auth.AuthGuard())
+	r.POST("", CreateChatController)
+}
+
+func CreateChatController(c *gin.Context) {
+
 }

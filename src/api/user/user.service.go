@@ -122,12 +122,12 @@ func UpdateUser(db *gorm.DB, id *string, payload *UpdateUserRequest) (*UpdateUse
 	}
 
 	return &UpdateUserResponse{
-		Id:            user.Id,
-		CreatedAt:     user.CreatedAt,
-		UpdatedAt:     user.UpdatedAt,
-		Email:         user.Email,
-		Name:          user.Name,
-		Bio:           user.Bio,
+		Id:             user.Id,
+		CreatedAt:      user.CreatedAt,
+		UpdatedAt:      user.UpdatedAt,
+		Email:          user.Email,
+		Name:           user.Name,
+		Bio:            user.Bio,
 		ProfilePicture: user.ProfilePicture,
 	}, nil
 }
