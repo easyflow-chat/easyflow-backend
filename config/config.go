@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -38,7 +38,7 @@ func getEnvInt(key string, fallback int) int {
 func LoadDefaultConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		fmt.Println("Error loading .env file: ", err)
 	}
 
 	return &Config{

@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    environment:
+      MYSQL_DATABASE: chat-app
+      MYSQL_USER: devel
+      MYSQL_PASSWORD: devel
+      MYSQL_ROOT_PASSWORD: devel
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  easyflow-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mariadb
+    environment:
+      DATABASE_URL: "devel:devel@tcp(mariadb:3306)/chat-app?charset=utf8mb4&parseTime=True&loc=Local"
+
+  adminer-interface:
+    image: adminer:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mariadb
+
+volumes:
+  mariadb_data:
