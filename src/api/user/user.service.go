@@ -93,3 +93,41 @@ func GetUserByEmail(db *gorm.DB, email *string) (*GetUserResponse, *api.ApiError
 		PrivateKey: user.PrivateKey,
 	}, nil
 }
+
+func UpdateUser(db *gorm.DB, id *string, payload *UpdateUserRequest) (*UpdateUserResponse, *api.ApiError) {
+	fmt.Println("Attempting to update user with email: ", id)
+	var user database.User
+	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.NotFound,
+		}
+	}
+
+	if payload.Name != nil {
+		user.Name = *payload.Name
+	}
+	if payload.Bio != nil {
+		user.Bio = payload.Bio
+	}
+	if payload.ProfilePicture != nil {
+		user.ProfilePicture = payload.ProfilePicture
+	}
+
+	if err := db.Save(&user).Error; err != nil {
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
+	}
+
+	return &UpdateUserResponse{
+		Id:            user.Id,
+		CreatedAt:     user.CreatedAt,
+		UpdatedAt:     user.UpdatedAt,
+		Email:         user.Email,
+		Name:          user.Name,
+		Bio:           user.Bio,
+		ProfilePicture: user.ProfilePicture,
+	}, nil
+}
