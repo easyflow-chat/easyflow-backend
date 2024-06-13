@@ -1,7 +1,6 @@
 FROM alpine:latest
 
-# Copy the binary to Docker image
-COPY easyflow-backend /easyflow-backend
+# Assuming the Dockerfile is in $ROOT/Docker and the binary is in $ROOT
+COPY ../easyflow-backend /easyflow-backend
 
-# Run the binary
 CMD ["./easyflow-backend"]
