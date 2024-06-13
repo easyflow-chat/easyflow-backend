@@ -10,7 +10,7 @@ type JWTPayload struct {
 	UserId      string     `json:"userId"`
 	Email       string     `json:"email"`
 	RefreshRand *uuid.UUID `json:"refreshRand"`
-	IsPublic    bool       `json:"isPublic"`
+	IsAccess    bool       `json:"isAccess"`
 }
 
 type JWTPair struct {

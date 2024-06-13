@@ -5,6 +5,7 @@ import (
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,6 +37,33 @@ func AuthGuard() gin.HandlerFunc {
 		// Validate token
 		payload, err := ValidateToken(cfg.(*common.Config), token)
 		if err != nil {
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized,
+				Error: enum.Unauthorized,
+			})
+			c.Abort()
+			return
+		}
+
+		if payload.ExpiresAt.Time.Before(time.Now()) {
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized,
+				Error: enum.Unauthorized,
+			})
+			c.Abort()
+			return
+		}
+
+		if payload.Issuer != "easyflow" {
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized,
+				Error: enum.Unauthorized,
+			})
+			c.Abort()
+			return
+		}
+
+		if !payload.IsAccess {
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
