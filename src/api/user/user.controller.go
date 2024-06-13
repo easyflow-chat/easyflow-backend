@@ -2,9 +2,7 @@ package user
 
 import (
 	"easyflow-backend/src/api"
-	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
-	"easyflow-backend/src/middleware"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +10,6 @@ import (
 )
 
 func RegisterUserEndpoints(r *gin.RouterGroup) {
-	r.Use(middleware.LoggerMiddleware("UserModul", common.FatalLevel))
 	r.POST("/signup", CreateUserController)
 	r.GET("/:id", GetUserController)
 }
