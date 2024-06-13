@@ -1,23 +1,20 @@
-package user
+package auth
 
 import (
 	"easyflow-backend/src/api"
-	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
-	"easyflow-backend/src/middleware"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func RegisterUserEndpoints(r *gin.RouterGroup) {
-	r.Use(middleware.LoggerMiddleware("UserModul", common.FatalLevel))
-	r.POST("/signup", CreateUserController)
+func RegisterAuthEndpoints(r *gin.RouterGroup) {
+	r.POST("/login", LoginController)
 }
 
-func CreateUserController(c *gin.Context) {
-	var payload CreateUserRequest
+func LoginController(c *gin.Context) {
+	var payload LoginRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, api.ApiError{
 			Code:    http.StatusBadRequest,
@@ -45,11 +42,14 @@ func CreateUserController(c *gin.Context) {
 		return
 	}
 
-	user, err := CreateUser(db.(*gorm.DB), &payload)
+	jwtPair, err := LoginService(db.(*gorm.DB), &payload)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
 	}
 
-	c.JSON(200, user)
+	c.SetCookie("access_token", jwtPair.AccessToken, 60*60*24, "/", "", false, true)
+	c.SetCookie("refresh_token", jwtPair.RefreshToken, 60*60*24*7, "/", "", false, true)
+
+	c.JSON(200, gin.H{})
 }
