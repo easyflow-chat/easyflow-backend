@@ -17,7 +17,6 @@ func main() {
 		panic(err)
 	}
 
-	dbInst.Acquire()
 	err = dbInst.Migrate()
 	if err != nil {
 		panic(err)
@@ -34,6 +33,4 @@ func main() {
 	}
 
 	router.Run(":" + cfg.Port)
-
-	defer dbInst.Release()
 }

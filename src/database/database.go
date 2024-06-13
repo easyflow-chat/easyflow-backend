@@ -1,16 +1,12 @@
 package database
 
 import (
-	"sync"
-
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 type DatabaseInst struct {
-	client   *gorm.DB
-	refCount int
-	lock     sync.Mutex
+	client *gorm.DB
 }
 
 func NewDatabaseInst(url string, config *gorm.Config) (*DatabaseInst, error) {
@@ -19,25 +15,7 @@ func NewDatabaseInst(url string, config *gorm.Config) (*DatabaseInst, error) {
 		return nil, err
 	}
 
-	return &DatabaseInst{
-		client:   db,
-		refCount: 1,
-	}, nil
-}
-
-func (d *DatabaseInst) Acquire() {
-	d.lock.Lock()
-	defer d.lock.Unlock()
-	d.refCount++
-}
-
-func (d *DatabaseInst) Release() {
-	d.lock.Lock()
-	defer d.lock.Unlock()
-	d.refCount--
-	if d.refCount == 0 {
-		d.client = nil
-	}
+	return &DatabaseInst{client: db}, nil
 }
 
 func (d *DatabaseInst) GetClient() *gorm.DB {
