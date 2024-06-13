@@ -71,7 +71,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPa
 		UserId:      user.Id,
 		Email:       user.Email,
 		RefreshRand: &unique,
-		IsPublic:    true,
+		IsAccess:    true,
 	}
 
 	refreshTokenPayload := JWTPayload{
@@ -83,7 +83,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPa
 		UserId:      user.Id,
 		Email:       user.Email,
 		RefreshRand: &unique,
-		IsPublic:    false,
+		IsAccess:    false,
 	}
 
 	accessToken, err := generateJwt(cfg, &accessTokenPayload)

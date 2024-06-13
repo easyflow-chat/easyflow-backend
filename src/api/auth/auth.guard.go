@@ -44,6 +44,33 @@ func AuthGuard() gin.HandlerFunc {
 			return
 		}
 
+		if payload.ExpiresAt < int64(time.Now().Unix()) {
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized,
+				Error: enum.Unauthorized,
+			})
+			c.Abort()
+			return
+		}
+
+		if payload.Issuer != "easyflow" {
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized,
+				Error: enum.Unauthorized,
+			})
+			c.Abort()
+			return
+		}
+
+		if payload.IsAccess != true {
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized,
+				Error: enum.Unauthorized,
+			})
+			c.Abort()
+			return
+		}
+
 		// Set user payload in context
 		c.Set("user", payload)
 		c.Next()
