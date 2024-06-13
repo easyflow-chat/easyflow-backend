@@ -48,7 +48,7 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest) (*CreateUserResponse, *
 	}, nil
 }
 
-func GetUserById(db *gorm.DB, id *string) (*database.User, *api.ApiError) {
+func GetUserById(db *gorm.DB, id *string) (*GetUserResponse, *api.ApiError) {
 	fmt.Println("Attempting to get user with email: ", id)
 	var user database.User
 	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
@@ -58,5 +58,15 @@ func GetUserById(db *gorm.DB, id *string) (*database.User, *api.ApiError) {
 		}
 	}
 
-	return &user, nil
+	return &GetUserResponse{
+		Id:         user.Id,
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
+		Email:      user.Email,
+		Name:       user.Name,
+		Bio:        user.Bio,
+		Iv:         user.Iv,
+		PublicKey:  user.PublicKey,
+		PrivateKey: user.PrivateKey,
+	}, nil
 }
