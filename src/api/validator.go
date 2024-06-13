@@ -24,12 +24,12 @@ func init() {
 	}
 }
 
-func TranslateError(err error) map[string]string {
+func TranslateError(err error) []string {
 	errs := err.(validator.ValidationErrors)
-	translatedErrors := make(map[string]string)
+	translatedErrors := make([]string, 0, len(errs))
 
 	for _, e := range errs {
-		translatedErrors[e.Field()] = e.Translate(Trans)
+		translatedErrors = append(translatedErrors, e.Translate(Trans))
 	}
 
 	return translatedErrors
