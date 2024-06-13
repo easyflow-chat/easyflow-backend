@@ -12,10 +12,10 @@ import (
 
 func RegisterUserEndpoints(r *gin.RouterGroup) {
 	r.POST("/signup", CreateUserController)
-	r.GET("/", GetUserController)
-	r.GET("/profile-picture", GetProfilePictureController)
-	r.PUT("/", UpdateUserController)
-	r.DELETE("/", DeleteUserController)
+	r.GET("/", auth.AuthGuard(), GetUserController)
+	r.GET("/profile-picture", auth.AuthGuard(), GetProfilePictureController)
+	r.PUT("/", auth.AuthGuard(), UpdateUserController)
+	r.DELETE("/", auth.AuthGuard(), DeleteUserController)
 }
 
 func CreateUserController(c *gin.Context) {
@@ -57,7 +57,7 @@ func CreateUserController(c *gin.Context) {
 }
 
 func GetUserController(c *gin.Context) {
-		val, ok := c.Get("user")
+	val, ok := c.Get("user")
 
 	if !ok {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
@@ -68,11 +68,11 @@ func GetUserController(c *gin.Context) {
 
 	user, ok := val.(auth.JWTPayload)
 	if !ok {
-			c.JSON(http.StatusInternalServerError, api.ApiError{
-					Code:  http.StatusInternalServerError,
-					Error: enum.ApiError,
-			})
-			return
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+		return
 	}
 
 	db, ok := c.Get("db")
@@ -94,7 +94,7 @@ func GetUserController(c *gin.Context) {
 }
 
 func GetProfilePictureController(c *gin.Context) {
-		val, ok := c.Get("user")
+	val, ok := c.Get("user")
 
 	if !ok {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
@@ -105,11 +105,11 @@ func GetProfilePictureController(c *gin.Context) {
 
 	user, ok := val.(auth.JWTPayload)
 	if !ok {
-			c.JSON(http.StatusInternalServerError, api.ApiError{
-					Code:  http.StatusInternalServerError,
-					Error: enum.ApiError,
-			})
-			return
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+		return
 	}
 
 	db, ok := c.Get("db")
@@ -126,7 +126,7 @@ func GetProfilePictureController(c *gin.Context) {
 		c.JSON(err.Code, err)
 		return
 	}
-	
+
 	c.JSON(200, pic)
 }
 
@@ -142,11 +142,11 @@ func UpdateUserController(c *gin.Context) {
 
 	user, ok := val.(auth.JWTPayload)
 	if !ok {
-			c.JSON(http.StatusInternalServerError, api.ApiError{
-					Code:  http.StatusInternalServerError,
-					Error: enum.ApiError,
-			})
-			return
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+		return
 	}
 
 	var payload UpdateUserRequest
@@ -198,11 +198,11 @@ func DeleteUserController(c *gin.Context) {
 
 	user, ok := val.(auth.JWTPayload)
 	if !ok {
-			c.JSON(http.StatusInternalServerError, api.ApiError{
-					Code:  http.StatusInternalServerError,
-					Error: enum.ApiError,
-			})
-			return
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+		return
 	}
 
 	db, ok := c.Get("db")
