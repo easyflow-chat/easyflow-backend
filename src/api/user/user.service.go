@@ -11,7 +11,6 @@ import (
 
 func CreateUser(db *gorm.DB, payload *CreateUserRequest) (*CreateUserResponse, *api.ApiError) {
 	log.Println("Attempting to create user with email: ", payload.Email)
-	//find unique if the email is already in the database
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err == nil {
 		return nil, &api.ErrUserAlreadyExists

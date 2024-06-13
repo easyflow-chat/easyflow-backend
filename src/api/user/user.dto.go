@@ -9,17 +9,6 @@ type CreateUserRequest struct {
 	Iv         string `json:"iv"`
 }
 
-/*
-{
-	"email": "test@test.com",
-	"name": "test",
-	"password": "test",
-	"public_key": "test",
-	"private_key": "test",
-	"iv": "test"
-}
-*/
-
 type CreateUserResponse struct {
 	Id        string `json:"id"`
 	CreatedAt string `json:"created_at"`

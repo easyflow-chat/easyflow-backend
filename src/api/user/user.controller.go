@@ -1,6 +1,10 @@
 package user
 
 import (
+	"easyflow-backend/src/api"
+	"easyflow-backend/src/common"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -12,13 +16,17 @@ func RegisterUserEndpoints(r *gin.RouterGroup) {
 func CreateUserController(c *gin.Context) {
 	var payload CreateUserRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, api.ApiError{
+			Code:     http.StatusBadRequest,
+			Message:  "Failed to parse request body",
+			Expected: common.StringPointer("email, name, password, public_key, private_key, iv"),
+		})
 		return
 	}
 
 	db, ok := c.Get("db")
 	if !ok {
-		c.JSON(500, gin.H{"error": "database not found"})
+		c.JSON(http.StatusInternalServerError, api.ErrDatabaseConnection)
 		return
 	}
 
