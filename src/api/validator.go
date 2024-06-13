@@ -15,7 +15,7 @@ var (
 
 func init() {
 	enLocale := en.New()
-	uni = ut.New(enLocale, enLocale) // Set up the Universal Translator with the English locale
+	uni = ut.New(enLocale, enLocale)
 	Validate = validator.New()
 	Trans, _ = uni.GetTranslator("en")
 

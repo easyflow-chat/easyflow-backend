@@ -18,7 +18,7 @@ func CreateUserController(c *gin.Context) {
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, api.ApiError{
 			Code:    http.StatusBadRequest,
-			Error:   enum.ApiError,
+			Error:   enum.MalformedRequest,
 			Details: err.Error(),
 		})
 		return
