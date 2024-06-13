@@ -43,7 +43,7 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest) (*CreateUserResponse, *
 	return &CreateUserResponse{
 		Id:        user.Id,
 		CreatedAt: user.CreatedAt.String(),
-		UpdatedAt:  user.UpdatedAt.String(),
+		UpdatedAt: user.UpdatedAt.String(),
 		Email:     user.Email,
 	}, nil
 }
@@ -53,12 +53,10 @@ func GetUserById(db *gorm.DB, id *string) (*database.User, *api.ApiError) {
 	var user database.User
 	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, &api.ApiError{
-			Code: http.StatusInternalServerError,
+			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
 		}
 	}
 
-	return &CreateUserResponse{
-
-	}, nil
+	return &user, nil
 }

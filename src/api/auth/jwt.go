@@ -1,13 +1,16 @@
 package auth
 
-import "github.com/golang-jwt/jwt/v4"
-
-var TOK_TTL = 60 * 60 * 24
+import (
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+)
 
 type JWTPayload struct {
 	jwt.RegisteredClaims
-	UserId string `json:"userId"`
-	Email  string `json:"email"`
+	UserId      string     `json:"userId"`
+	Email       string     `json:"email"`
+	RefreshRand *uuid.UUID `json:"refreshRand"`
+	IsPublic    bool       `json:"isPublic"`
 }
 
 type JWTPair struct {

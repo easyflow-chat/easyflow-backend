@@ -58,7 +58,7 @@ func GetUserController(c *gin.Context) {
 	db, ok := c.Get("db")
 	if !ok {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code: http.StatusInternalServerError,
+			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
 		})
 	}

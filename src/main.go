@@ -26,6 +26,7 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.Default())
 	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))
+	router.Use(middleware.ConfigMiddleware(cfg))
 
 	//register user endpoints
 	userEndpoints := router.Group("/user")

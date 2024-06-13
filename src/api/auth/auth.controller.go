@@ -2,6 +2,7 @@ package auth
 
 import (
 	"easyflow-backend/src/api"
+	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
 	"net/http"
 
@@ -42,7 +43,16 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	jwtPair, err := LoginService(db.(*gorm.DB), &payload)
+	cfg, ok := c.Get("config")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+		return
+	}
+
+	jwtPair, err := LoginService(db.(*gorm.DB), cfg.(*common.Config), &payload)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
@@ -51,5 +61,8 @@ func LoginController(c *gin.Context) {
 	c.SetCookie("access_token", jwtPair.AccessToken, TOK_TTL, "/", "", false, true)
 	c.SetCookie("refresh_token", jwtPair.RefreshToken, TOK_TTL, "/", "", false, true)
 
-	c.JSON(200, gin.H{})
+	c.JSON(200, &LoginResponse{
+		AccessToken:  jwtPair.AccessToken,
+		RefreshToken: jwtPair.RefreshToken,
+	})
 }

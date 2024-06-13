@@ -17,6 +17,8 @@ type Config struct {
 	DatabaseURL string
 	SaltRounds  int
 	Port        string
+	//jwt
+	JwtSecret string
 }
 
 func getEnv(key, fallback string) string {
@@ -51,5 +53,6 @@ func LoadDefaultConfig() *Config {
 		DatabaseURL: getEnv("DATABASE_URL", ""),
 		SaltRounds:  getEnvInt("SALT_OR_ROUNDS", 10),
 		Port:        getEnv("PORT", "8080"),
+		JwtSecret:   getEnv("JWT_SECRET", "public_secret"),
 	}
 }

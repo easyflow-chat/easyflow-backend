@@ -77,3 +77,18 @@ func (cuk *ChatUserKeys) BeforeCreate(tx *gorm.DB) (err error) {
 	cuk.Id = uuid.NewString()
 	return
 }
+
+type UserKeys struct {
+	Id           string    `gorm:"type:uuid;primaryKey"`
+	CreatedAt    time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP"`
+	UpdatedAt    time.Time `gorm:"column:updated_at"`
+	ExpiredAt    time.Time `gorm:"column:expired_at"`
+	User         User      `gorm:"foreignKey:UserId"`
+	UserId       string    `gorm:"index"`
+	RefreshToken string    `gorm:"type:text"`
+}
+
+func (uk *UserKeys) BeforeCreate(tx *gorm.DB) (err error) {
+	uk.Id = uuid.NewString()
+	return
+}

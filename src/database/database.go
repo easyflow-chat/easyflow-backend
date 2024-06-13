@@ -23,5 +23,5 @@ func (d *DatabaseInst) GetClient() *gorm.DB {
 }
 
 func (d *DatabaseInst) Migrate() error {
-	return d.client.AutoMigrate(&Message{}, &Chat{}, &User{}, &ChatUserKeys{})
+	return d.client.AutoMigrate(&Message{}, &Chat{}, &User{}, &ChatUserKeys{}, &UserKeys{})
 }
