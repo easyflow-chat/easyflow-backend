@@ -22,6 +22,9 @@ jobs:
         with:
           go-version: '1.22.x'
 
+      - name: Clear Go module cache directory if needed
+        run: rm -rf ~/go/pkg/mod/*
+
       - name: Cache Go modules
         id: cache-go-modules
         uses: actions/cache@v2
@@ -33,18 +36,16 @@ jobs:
 
       - name: Check Cache Hit
         run: |
-          if [ "${{ steps.cache-go-modules.outputs.cache-hit }}" == "true" ]; then
-            echo "Cache hit, skipping some steps..."
-          else
-            echo "Cache miss, performing additional steps..."
+          if [ "${{ steps.cache-go-modules.outputs.cache-hit }}" != 'true' ]; then
+            echo "Cache miss, downloading dependencies..."
             go mod tidy
             go mod download
-          fi      
+          fi   
 
       - name: Build
         run: |
           # Ensure the binary is statically linked to avoid libc issues with Alpine
-          CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o easyflow-backend .
+          CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bin/easyflow-backend .
 
       - name: Build Docker image
         run: |
