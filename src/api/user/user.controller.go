@@ -2,6 +2,7 @@ package user
 
 import (
 	"easyflow-backend/src/api"
+	"easyflow-backend/src/api/auth"
 	"easyflow-backend/src/enum"
 	"net/http"
 
@@ -11,8 +12,10 @@ import (
 
 func RegisterUserEndpoints(r *gin.RouterGroup) {
 	r.POST("/signup", CreateUserController)
-	r.GET("/:id", GetUserController)
-	r.PUT("/:id", UpdateUserController)
+	r.GET("/", GetUserController)
+	r.GET("/profile-picture", GetProfilePictureController)
+	r.PUT("/", UpdateUserController)
+	r.DELETE("/", DeleteUserController)
 }
 
 func CreateUserController(c *gin.Context) {
@@ -54,7 +57,23 @@ func CreateUserController(c *gin.Context) {
 }
 
 func GetUserController(c *gin.Context) {
-	id := c.Param("id")
+		val, ok := c.Get("user")
+
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+	}
+
+	user, ok := val.(auth.JWTPayload)
+	if !ok {
+			c.JSON(http.StatusInternalServerError, api.ApiError{
+					Code:  http.StatusInternalServerError,
+					Error: enum.ApiError,
+			})
+			return
+	}
 
 	db, ok := c.Get("db")
 	if !ok {
@@ -64,18 +83,71 @@ func GetUserController(c *gin.Context) {
 		})
 	}
 
-	user, err := GetUserById(db.(*gorm.DB), &id)
+	userFromDb, err := GetUserById(db.(*gorm.DB), &user.UserId)
 
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
 	}
 
-	c.JSON(200, user)
+	c.JSON(200, userFromDb)
+}
+
+func GetProfilePictureController(c *gin.Context) {
+		val, ok := c.Get("user")
+
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+	}
+
+	user, ok := val.(auth.JWTPayload)
+	if !ok {
+			c.JSON(http.StatusInternalServerError, api.ApiError{
+					Code:  http.StatusInternalServerError,
+					Error: enum.ApiError,
+			})
+			return
+	}
+
+	db, ok := c.Get("db")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+	}
+
+	pic, err := GetProfilePicture(db.(*gorm.DB), &user.UserId)
+
+	if err != nil {
+		c.JSON(err.Code, err)
+		return
+	}
+	
+	c.JSON(200, pic)
 }
 
 func UpdateUserController(c *gin.Context) {
-	id := c.Param("id")
+	val, ok := c.Get("user")
+
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+	}
+
+	user, ok := val.(auth.JWTPayload)
+	if !ok {
+			c.JSON(http.StatusInternalServerError, api.ApiError{
+					Code:  http.StatusInternalServerError,
+					Error: enum.ApiError,
+			})
+			return
+	}
 
 	var payload UpdateUserRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -104,12 +176,51 @@ func UpdateUserController(c *gin.Context) {
 		})
 	}
 
-	user, err := UpdateUser(db.(*gorm.DB), &id, &payload)
+	updatedUser, err := UpdateUser(db.(*gorm.DB), &user.UserId, &payload)
 
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
 	}
 
-	c.JSON(200, user)
+	c.JSON(200, updatedUser)
+}
+
+func DeleteUserController(c *gin.Context) {
+	val, ok := c.Get("user")
+
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+	}
+
+	user, ok := val.(auth.JWTPayload)
+	if !ok {
+			c.JSON(http.StatusInternalServerError, api.ApiError{
+					Code:  http.StatusInternalServerError,
+					Error: enum.ApiError,
+			})
+			return
+	}
+
+	db, ok := c.Get("db")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+	}
+
+	err := DeleteUser(db.(*gorm.DB), &user.UserId)
+
+	if err != nil {
+		c.JSON(err.Code, err)
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"message": "User deleted",
+	})
 }

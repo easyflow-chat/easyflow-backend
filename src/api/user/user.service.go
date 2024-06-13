@@ -94,6 +94,19 @@ func GetUserByEmail(db *gorm.DB, email *string) (*GetUserResponse, *api.ApiError
 	}, nil
 }
 
+func GetProfilePicture(db *gorm.DB, id *string) (*string, *api.ApiError) {
+	fmt.Println("Attempting to get profile picture for user with email: ", id)
+	var user database.User
+	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.NotFound,
+		}
+	}
+
+	return user.ProfilePicture, nil
+}
+
 func UpdateUser(db *gorm.DB, id *string, payload *UpdateUserRequest) (*UpdateUserResponse, *api.ApiError) {
 	fmt.Println("Attempting to update user with email: ", id)
 	var user database.User
@@ -130,4 +143,24 @@ func UpdateUser(db *gorm.DB, id *string, payload *UpdateUserRequest) (*UpdateUse
 		Bio:            user.Bio,
 		ProfilePicture: user.ProfilePicture,
 	}, nil
+}
+
+func DeleteUser(db *gorm.DB, id *string) *api.ApiError {
+	fmt.Println("Attempting to delete user with email: ", id)
+	var user database.User
+	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
+		return &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.NotFound,
+		}
+	}
+
+	if err := db.Delete(&user).Error; err != nil {
+		return &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
+	}
+
+	return nil
 }
