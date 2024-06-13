@@ -70,3 +70,26 @@ func GetUserById(db *gorm.DB, id *string) (*GetUserResponse, *api.ApiError) {
 		PrivateKey: user.PrivateKey,
 	}, nil
 }
+
+func GetUserByEmail(db *gorm.DB, email *string) (*GetUserResponse, *api.ApiError) {
+	fmt.Println("Attempting to get user with email: ", email)
+	var user database.User
+	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
+	}
+
+	return &GetUserResponse{
+		Id:         user.Id,
+		CreatedAt:  user.CreatedAt,
+		UpdatedAt:  user.UpdatedAt,
+		Email:      user.Email,
+		Name:       user.Name,
+		Bio:        user.Bio,
+		Iv:         user.Iv,
+		PublicKey:  user.PublicKey,
+		PrivateKey: user.PrivateKey,
+	}, nil
+}
