@@ -2,6 +2,7 @@ package user
 
 import (
 	"easyflow-backend/src/api"
+	"easyflow-backend/src/enum"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,7 @@ func CreateUserController(c *gin.Context) {
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, api.ApiError{
 			Code:    http.StatusBadRequest,
-			Message: "Invalid request payload",
+			Error:   enum.ApiError,
 			Details: err.Error(),
 		})
 		return
@@ -26,7 +27,7 @@ func CreateUserController(c *gin.Context) {
 	if err := api.Validate.Struct(payload); err != nil {
 		c.JSON(http.StatusBadRequest, api.ApiError{
 			Code:    http.StatusBadRequest,
-			Message: "Invalid request payload",
+			Error:   enum.MalformedRequest,
 			Details: api.TranslateError(err),
 		})
 		return
@@ -34,7 +35,10 @@ func CreateUserController(c *gin.Context) {
 
 	db, ok := c.Get("db")
 	if !ok {
-		c.JSON(http.StatusInternalServerError, api.ErrDatabaseConnection)
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
 		return
 	}
 

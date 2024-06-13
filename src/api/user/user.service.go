@@ -2,9 +2,11 @@ package user
 
 import (
 	"log"
+	"net/http"
 
 	"easyflow-backend/src/api"
 	"easyflow-backend/src/database"
+	"easyflow-backend/src/enum"
 
 	"gorm.io/gorm"
 )
@@ -13,7 +15,10 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest) (*CreateUserResponse, *
 	log.Println("Attempting to create user with email: ", payload.Email)
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err == nil {
-		return nil, &api.ErrUserAlreadyExists
+		return nil, &api.ApiError{
+			Code:  http.StatusConflict,
+			Error: enum.AlreadyExists,
+		}
 	}
 
 	//create a new user
@@ -28,7 +33,10 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest) (*CreateUserResponse, *
 
 	if err := db.Create(&user).Error; err != nil {
 		log.Println("Error creating user: ", err)
-		return nil, &api.ErrFailedToCreateUser
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
 	}
 
 	return &CreateUserResponse{
