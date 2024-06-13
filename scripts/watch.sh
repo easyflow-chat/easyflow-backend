@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start watching for file changes and run the development script
-reflex -r '^src/.*\.go$' -s -- sh scripts/dev.sh &
+reflex -r '^src/.*\.go$' -s -- sh scripts/dev.sh 
 
 # Capture the PID of the reflex process
 #REFLEX_PID=$!

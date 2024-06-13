@@ -6,13 +6,15 @@ import (
 	"net/http"
 
 	"easyflow-backend/src/api"
+	"easyflow-backend/src/common"
 	"easyflow-backend/src/database"
 	"easyflow-backend/src/enum"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-func CreateUser(db *gorm.DB, payload *CreateUserRequest) (*CreateUserResponse, *api.ApiError) {
+func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config) (*CreateUserResponse, *api.ApiError) {
 	log.Println("Attempting to create user with email: ", payload.Email)
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err == nil {
@@ -22,11 +24,20 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest) (*CreateUserResponse, *
 		}
 	}
 
+	password, err := bcrypt.GenerateFromPassword([]byte(payload.Password), cfg.SaltRounds)
+	if err != nil {
+		log.Println("Error hashing password: ", err)
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
+	}
+
 	//create a new user
 	user = database.User{
 		Email:      payload.Email,
 		Name:       payload.Name,
-		Password:   payload.Password,
+		Password:   string(password),
 		PublicKey:  payload.PublicKey,
 		PrivateKey: payload.PrivateKey,
 		Iv:         payload.Iv,

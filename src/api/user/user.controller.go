@@ -3,6 +3,7 @@ package user
 import (
 	"easyflow-backend/src/api"
 	"easyflow-backend/src/api/auth"
+	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
 	"net/http"
 
@@ -47,7 +48,16 @@ func CreateUserController(c *gin.Context) {
 		return
 	}
 
-	user, err := CreateUser(db.(*gorm.DB), &payload)
+	cfg, ok := c.Get("config")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+		return
+	}
+
+	user, err := CreateUser(db.(*gorm.DB), &payload, cfg.(*common.Config))
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
