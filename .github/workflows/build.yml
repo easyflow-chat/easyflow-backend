@@ -6,7 +6,7 @@ on:
     branches:
       - main
       - release/*
-      - feature/migrate-go
+      - feature/migration-go
     tags:
       - 'v*'
 
