@@ -14,6 +14,3 @@ docker compose -f ./docker/docker-compose.yml down
 
 # If the old containers are successfully removed, proceed with Docker Compose
 docker compose -f ./docker/docker-compose.yml up --build -d
-
-# Remove unused Docker images and containers to free up space (optional)
-docker system prune -f

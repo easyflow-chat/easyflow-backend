@@ -18,7 +18,11 @@ func main() {
 	}
 
 	dbInst.Acquire()
-	dbInst.Migrate()
+	err = dbInst.Migrate()
+	if err != nil {
+		panic(err)
+	}
+
 	router := gin.Default()
 	router.Use(cors.Default())
 	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))

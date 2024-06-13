@@ -15,11 +15,19 @@ func RegisterUserEndpoints(r *gin.RouterGroup) {
 func CreateUserController(c *gin.Context) {
 	var payload CreateUserRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		decrypted := Validator.DecryptErrors(err)
 		c.JSON(http.StatusBadRequest, api.ApiError{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request payload",
-			Details: &decrypted,
+			Details: err.Error(),
+		})
+		return
+	}
+
+	if err := api.Validate.Struct(payload); err != nil {
+		c.JSON(http.StatusBadRequest, api.ApiError{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid request payload",
+			Details: api.TranslateError(err),
 		})
 		return
 	}

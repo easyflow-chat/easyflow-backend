@@ -46,7 +46,7 @@ type User struct {
 	UpdatedAt      time.Time      `gorm:"column:updated_at;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
 	Email          string         `gorm:"type:varchar(255);unique_index"`
 	Password       string         `gorm:"type:text"`
-	Name           string         `gorm:"type:varchar(255)"`
+	Name           string         `gorm:"type:varchar(50)"`
 	ProfilePicture *string        `gorm:"column:profile_picture;type:varchar(2048)"`
 	Bio            *string        `gorm:"type:varchar(1000)"`
 	Iv             string         `gorm:"type:varchar(25)"`
