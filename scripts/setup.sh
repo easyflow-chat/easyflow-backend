@@ -16,5 +16,5 @@ fi
 # Install the pre-commit hooks
 echo "Installing pre-commit hooks..."
 pre-commit install
-
+go install github.com/cespare/reflex@latest
 echo "Setup completed successfully."
