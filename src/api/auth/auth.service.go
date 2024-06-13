@@ -139,3 +139,56 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPa
 		RefreshToken: refreshToken,
 	}, nil
 }
+
+func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload) (JWTPair, *api.ApiError) {
+	//get user from db
+	var user database.User
+	if err := db.Where("id = ?", payload.UserId).First(&user).Error; err != nil {
+		fmt.Println("Error finding user: ", err)
+		return JWTPair{}, &api.ApiError{
+			Code:  http.StatusUnauthorized,
+			Error: enum.Unauthorized,
+		}
+	}
+
+	unique := uuid.New()
+	expires := time.Now().Add(time.Duration(TOK_TTL) * time.Second)
+
+	accessTokenPayload := JWTPayload{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expires),
+			Issuer:    "easyflow",
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+		UserId:      user.Id,
+		Email:       user.Email,
+		RefreshRand: &unique,
+		IsAccess:    true,
+	}
+
+	/* _ := JWTPayload{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expires),
+			Issuer:    "easyflow",
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+		UserId:      user.Id,
+		Email:       user.Email,
+		RefreshRand: &unique,
+		IsAccess:    false,
+	} */
+
+	accessToken, err := generateJwt(cfg, &accessTokenPayload)
+	if err != nil {
+		fmt.Println("Error generating jwt: ", err)
+		return JWTPair{}, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
+	}
+
+	return JWTPair{
+		AccessToken:  accessToken,
+		RefreshToken: "",
+	}, nil
+}

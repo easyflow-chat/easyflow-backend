@@ -12,4 +12,7 @@ const (
 	AlreadyExists    ErrorCode = "ALREADY_EXISTS"
 	WrongCredentials ErrorCode = "WRONG_CREDENTIALS"
 	MalformedRequest ErrorCode = "MALFORMED_REQUEST"
+	InvalidCookie    ErrorCode = "INVALID_COOKIE"
+	InvalidRefresh   ErrorCode = "INVALID_REFRESH"
+	ExpiredToken     ErrorCode = "EXPIRED_TOKEN"
 )
