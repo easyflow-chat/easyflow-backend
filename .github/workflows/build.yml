@@ -24,7 +24,7 @@ jobs:
       - name: Build
         run: |
           # Ensure the binary is statically linked to avoid libc issues with Alpine
-          CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bin/easyflow-backend .
+          CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./bin/easyflow-backend ./src
 
       - name: Build Docker image
         run: |

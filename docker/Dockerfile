@@ -12,4 +12,5 @@ COPY bin/easyflow-backend ./easyflow-backend
 COPY example.env ./.env
 RUN chmod +x easyflow-backend
 
+
 CMD ["dockerize", "-wait", "tcp://mariadb:3306", "-timeout", "30s", "./easyflow-backend"]

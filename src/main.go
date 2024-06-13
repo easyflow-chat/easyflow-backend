@@ -1,9 +1,9 @@
 package main
 
 import (
-	"easyflow-backend/config"
-	"easyflow-backend/database"
-	"easyflow-backend/middleware"
+	"easyflow-backend/src/config"
+	"easyflow-backend/src/database"
+	"easyflow-backend/src/middleware"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

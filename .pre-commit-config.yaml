@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: gofmt
         name: gofmt
-        entry: gofmt -w .
+        entry: gofmt -w ./src/
         language: system
         pass_filenames: false
 

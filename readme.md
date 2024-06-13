@@ -1,7 +1,7 @@
 ### Easyflow-Backend rewritten in Golang
 Not much documentation yet. Important for contribution:
 ```
-sh setup.sh
+sh scripts/setup.sh
 ```
 Or 
 ```
