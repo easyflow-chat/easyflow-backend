@@ -35,6 +35,9 @@ func getEnvInt(key string, fallback int) int {
 	return fallback
 }
 
+// LoadDefaultConfig loads the default configuration values.
+// It reads the environment variables from the .env file, if present,
+// and returns a Config struct with the loaded values.
 func LoadDefaultConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
