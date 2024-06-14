@@ -148,3 +148,93 @@ func GetChatPreviews(db *gorm.DB, jwtPayload *auth.JWTPayload) ([]GetChatPreview
 
 	return chatPreviews, nil
 }
+
+func GetChatById(db *gorm.DB, chatId string, jwtPayload *auth.JWTPayload) (*GetChatByIdResponse, *api.ApiError) {
+	var chat database.Chat
+	if err := db.Where("id = ?", chatId).First(&chat).Error; err != nil {
+		fmt.Println("Error getting chat with id: ", chatId, ". Error: ", err)
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
+	}
+
+	var chatUserKeys []database.ChatUserKeys
+	if err := db.Where("chat_id = ? AND user_id = ?", chatId, jwtPayload.UserId).Find(&chatUserKeys).Error; err != nil {
+		fmt.Println("Error getting chat user key for chat with id: ", chatId, ". Error: ", err)
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
+	}
+
+	var Messages []database.Message
+	if err := db.Where("chat_id = ?", chatId).Order("created_at desc").Find(&Messages).Limit(50).Error; err != nil {
+		fmt.Println("Error getting messages for chat with id: ", chatId, ". Error: ", err)
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
+	}
+
+	// Mappings
+	usersEntries := []UserEntry{}
+	for _, chatUserKey := range chatUserKeys {
+		var user database.User
+		if err := db.Where("id = ?", chatUserKey.UserId).First(&user).Error; err != nil {
+			fmt.Println("Error getting user with id: ", chatUserKey.UserId, ". Error: ", err)
+			return nil, &api.ApiError{
+				Code:  http.StatusInternalServerError,
+				Error: enum.ApiError,
+			}
+		}
+
+		usersEntries = append(usersEntries,
+			UserEntry{
+				Id:   user.Id,
+				Name: user.Name,
+				Bio:  user.Bio,
+			},
+		)
+	}
+
+	// TODO: Just make one object for user keys not array
+	userKeyEntries := []UserKeyEntry{}
+	for _, chatUserKey := range chatUserKeys {
+		userKeyEntries = append(userKeyEntries,
+			UserKeyEntry{
+				UserID: chatUserKey.UserId,
+				Key:    chatUserKey.Key,
+			},
+		)
+	}
+
+	messageEntries := []MessageEntry{}
+	for _, message := range Messages {
+		messageEntries = append(messageEntries,
+			MessageEntry{
+				Id:        message.Id,
+				CreatedAt: message.CreatedAt.String(),
+				UpdatedAt: message.UpdatedAt.String(),
+				Content:   message.Content,
+				Iv:        message.Iv,
+				SenderId:  message.SenderId,
+			},
+		)
+	}
+
+	return &GetChatByIdResponse{
+		CreateChatResponse: CreateChatResponse{
+			Id:          chat.Id,
+			CreatedAt:   chat.CreatedAt.String(),
+			UpdateAt:    chat.UpdatedAt.String(),
+			Name:        chat.Name,
+			Picture:     chat.Picture,
+			Description: chat.Description,
+		},
+		Users:    usersEntries,
+		UserKeys: userKeyEntries,
+		Messages: messageEntries,
+	}, nil
+
+}
