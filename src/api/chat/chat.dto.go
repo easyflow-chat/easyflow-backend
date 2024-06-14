@@ -1,7 +1,7 @@
 package chat
 
 type UserKeyEntry struct {
-	UserID string `json:"user_id" validate:"required"`
+	UserID string `json:"userId" validate:"required"`
 	Key    string `json:"key" validate:"required"`
 }
 
@@ -9,7 +9,7 @@ type CreateChatRequest struct {
 	Name        string         `json:"name" validate:"required"`
 	Picture     *string        `json:"picture" validate:"omitempty,url"`
 	Description *string        `json:"description" validate:"omitempty"`
-	UserKeys    []UserKeyEntry `json:"user_keys" validate:"required"`
+	UserKeys    []UserKeyEntry `json:"userKeys" validate:"required"`
 }
 
 type CreateChatResponse struct {
