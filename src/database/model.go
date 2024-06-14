@@ -32,7 +32,6 @@ type Chat struct {
 	Picture     *string   `gorm:"type:varchar(2048)"`
 	Description *string   `gorm:"type:text"`
 	Messages    []Message `gorm:"foreignKey:ChatId"`
-	Users       []User    `gorm:"many2many:user_chats;"`
 }
 
 func (c *Chat) BeforeCreate(tx *gorm.DB) (err error) {
@@ -52,7 +51,6 @@ type User struct {
 	Iv             string         `gorm:"type:varchar(25)"`
 	PublicKey      string         `gorm:"type:text"`
 	PrivateKey     string         `gorm:"type:text"`
-	Chats          []Chat         `gorm:"many2many:user_chats;"`
 	Keys           []ChatUserKeys `gorm:"foreignKey:UserId"`
 }
 

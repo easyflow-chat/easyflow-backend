@@ -15,4 +15,5 @@ const (
 	InvalidCookie    ErrorCode = "INVALID_COOKIE"
 	InvalidRefresh   ErrorCode = "INVALID_REFRESH"
 	ExpiredToken     ErrorCode = "EXPIRED_TOKEN"
+	UserNotFound     ErrorCode = "USER_NOT_FOUND"
 )

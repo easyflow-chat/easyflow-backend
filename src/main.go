@@ -2,6 +2,7 @@ package main
 
 import (
 	"easyflow-backend/src/api/auth"
+	"easyflow-backend/src/api/chat"
 	"easyflow-backend/src/api/user"
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/database"
@@ -39,16 +40,9 @@ func main() {
 		auth.RegisterAuthEndpoints(authEndpoints)
 	}
 
-	testAuthEndpoints := router.Group("/test")
+	chatEndpoints := router.Group("/chat")
 	{
-		testAuthEndpoints.Use(auth.AuthGuard())
-		func(r *gin.RouterGroup) {
-			r.GET("/auth", func(c *gin.Context) {
-				c.JSON(200, gin.H{
-					"message": "success",
-				})
-			})
-		}(testAuthEndpoints)
+		chat.RegisterChatEndpoints(chatEndpoints)
 	}
 
 	router.Run(":" + cfg.Port)

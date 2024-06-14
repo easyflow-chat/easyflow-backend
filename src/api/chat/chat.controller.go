@@ -4,13 +4,14 @@ import (
 	"easyflow-backend/src/api"
 	"easyflow-backend/src/api/auth"
 	"easyflow-backend/src/enum"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func RegisterAuthEndpoints(r *gin.RouterGroup) {
+func RegisterChatEndpoints(r *gin.RouterGroup) {
 	r.Use(auth.AuthGuard())
 	r.POST("", CreateChatController)
 }
@@ -52,8 +53,9 @@ func CreateChatController(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Println("User", user)
 
-	jwtPayload, ok := user.(auth.JWTPayload)
+	jwtPayload, ok := user.(*auth.JWTPayload)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:  http.StatusInternalServerError,
@@ -62,7 +64,7 @@ func CreateChatController(c *gin.Context) {
 		return
 	}
 
-	chat, err := CreateChat(db.(*gorm.DB), &payload, &jwtPayload)
+	chat, err := CreateChat(db.(*gorm.DB), &payload, jwtPayload)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
