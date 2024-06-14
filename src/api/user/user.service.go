@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"easyflow-backend/src/api"
+	"easyflow-backend/src/api/auth"
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/database"
 	"easyflow-backend/src/enum"
@@ -59,10 +60,10 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config) (*C
 	}, nil
 }
 
-func GetUserById(db *gorm.DB, id *string) (*GetUserResponse, *api.ApiError) {
-	fmt.Println("Attempting to get user with email: ", id)
+func GetUserById(db *gorm.DB, jwtPayload *auth.JWTPayload) (*GetUserResponse, *api.ApiError) {
+	fmt.Println("Attempting to get user with email: ", jwtPayload.Email)
 	var user database.User
-	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
+	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		return nil, &api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
@@ -82,10 +83,10 @@ func GetUserById(db *gorm.DB, id *string) (*GetUserResponse, *api.ApiError) {
 	}, nil
 }
 
-func GetUserByEmail(db *gorm.DB, email *string) (*GetUserResponse, *api.ApiError) {
-	fmt.Println("Attempting to get user with email: ", email)
+func GetUserByEmail(db *gorm.DB, jwtPayload *auth.JWTPayload) (*GetUserResponse, *api.ApiError) {
+	fmt.Println("Attempting to get user with email: ", jwtPayload.Email)
 	var user database.User
-	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := db.Where("email = ?", jwtPayload.Email).First(&user).Error; err != nil {
 		return nil, &api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
@@ -105,10 +106,10 @@ func GetUserByEmail(db *gorm.DB, email *string) (*GetUserResponse, *api.ApiError
 	}, nil
 }
 
-func GetProfilePicture(db *gorm.DB, id *string) (*string, *api.ApiError) {
-	fmt.Println("Attempting to get profile picture for user with email: ", id)
+func GetProfilePicture(db *gorm.DB, jwtPayload *auth.JWTPayload) (*string, *api.ApiError) {
+	fmt.Println("Attempting to get profile picture for user with email: ", jwtPayload.Email)
 	var user database.User
-	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
+	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		return nil, &api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.NotFound,
@@ -118,10 +119,10 @@ func GetProfilePicture(db *gorm.DB, id *string) (*string, *api.ApiError) {
 	return user.ProfilePicture, nil
 }
 
-func UpdateUser(db *gorm.DB, id *string, payload *UpdateUserRequest) (*UpdateUserResponse, *api.ApiError) {
-	fmt.Println("Attempting to update user with email: ", id)
+func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTPayload, payload *UpdateUserRequest) (*UpdateUserResponse, *api.ApiError) {
+	fmt.Println("Attempting to update user with email: ", jwtPayload.UserId)
 	var user database.User
-	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
+	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		return nil, &api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.NotFound,
@@ -156,10 +157,10 @@ func UpdateUser(db *gorm.DB, id *string, payload *UpdateUserRequest) (*UpdateUse
 	}, nil
 }
 
-func DeleteUser(db *gorm.DB, id *string) *api.ApiError {
-	fmt.Println("Attempting to delete user with email: ", id)
+func DeleteUser(db *gorm.DB, jwtPayload *auth.JWTPayload) *api.ApiError {
+	fmt.Println("Attempting to delete user with email: ", jwtPayload.UserId)
 	var user database.User
-	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
+	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		return &api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.NotFound,
