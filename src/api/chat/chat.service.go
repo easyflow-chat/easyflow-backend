@@ -5,6 +5,7 @@ import (
 	"easyflow-backend/src/api/auth"
 	"easyflow-backend/src/database"
 	"easyflow-backend/src/enum"
+	"fmt"
 	"net/http"
 
 	"gorm.io/gorm"
@@ -93,4 +94,57 @@ func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *auth.JWTPay
 		Picture:     chat.Picture,
 		Description: chat.Description,
 	}, nil
+}
+
+func GetChatPreviews(db *gorm.DB, jwtPayload *auth.JWTPayload) ([]GetChatPreviewResponse, *api.ApiError) {
+	fmt.Println("Attempting to get chat previews for user: ", jwtPayload.UserId)
+	var chatUserKeys []database.ChatUserKeys
+	var chatPreviews []GetChatPreviewResponse
+
+	if err := db.Where("user_id = ?", jwtPayload.UserId).Find(&chatUserKeys).Error; err != nil {
+		fmt.Println("Error getting chats for user: ", err)
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
+	}
+
+	for _, chatUserKey := range chatUserKeys {
+		var chat database.Chat
+		if err := db.Where("id = ?", chatUserKey.ChatId).First(&chat).Error; err != nil {
+			fmt.Println("Error getting chat with id:", chatUserKey.ChatId, ". Error:", err)
+			return nil, &api.ApiError{
+				Code:  http.StatusInternalServerError,
+				Error: enum.ApiError,
+			}
+		}
+
+		var lastMessage *database.Message = nil
+		if err := db.Where("chat_id = ?", chatUserKey.ChatId).Order("created_at desc").First(&lastMessage).Error; err != nil {
+			if err != gorm.ErrRecordNotFound {
+				// If there's another error, log it and return
+				fmt.Println("Error getting last message for chat with id: ", chatUserKey.ChatId, ". Error: ", err.Error())
+				return nil, &api.ApiError{
+					Code:  http.StatusInternalServerError,
+					Error: enum.ApiError,
+				}
+			}
+
+			chatPreview := GetChatPreviewResponse{
+				CreateChatResponse: CreateChatResponse{
+					Id:          chat.Id,
+					CreatedAt:   chat.CreatedAt.String(),
+					UpdateAt:    chat.UpdatedAt.String(),
+					Name:        chat.Name,
+					Picture:     chat.Picture,
+					Description: chat.Description,
+				},
+				LastMessage: &lastMessage.Content,
+			}
+
+			chatPreviews = append(chatPreviews, chatPreview)
+		}
+	}
+
+	return chatPreviews, nil
 }

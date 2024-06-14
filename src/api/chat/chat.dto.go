@@ -20,3 +20,8 @@ type CreateChatResponse struct {
 	Picture     *string `json:"picture"`
 	Description *string `json:"description"`
 }
+
+type GetChatPreviewResponse struct {
+	CreateChatResponse
+	LastMessage *string `json:"last_message"`
+}

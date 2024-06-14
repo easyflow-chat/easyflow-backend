@@ -14,6 +14,7 @@ import (
 func RegisterChatEndpoints(r *gin.RouterGroup) {
 	r.Use(auth.AuthGuard())
 	r.POST("", CreateChatController)
+	r.GET("/preview", GetChatPreviewsController)
 }
 
 func CreateChatController(c *gin.Context) {
@@ -71,4 +72,41 @@ func CreateChatController(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, chat)
+}
+
+func GetChatPreviewsController(c *gin.Context) {
+	db, ok := c.Get("db")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+		return
+	}
+
+	user, ok := c.Get("user")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+		return
+	}
+
+	jwtPayload, ok := user.(*auth.JWTPayload)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+		return
+	}
+
+	chats, err := GetChatPreviews(db.(*gorm.DB), jwtPayload)
+	if err != nil {
+		c.JSON(err.Code, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, chats)
 }
