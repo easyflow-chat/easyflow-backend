@@ -6,9 +6,9 @@ type UserKeyEntry struct {
 }
 
 type UserEntry struct {
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	Bio       *string `json:"bio"`
+	Id   string  `json:"id"`
+	Name string  `json:"name"`
+	Bio  *string `json:"bio"`
 }
 
 type MessageEntry struct {
@@ -43,7 +43,7 @@ type GetChatPreviewResponse struct {
 
 type GetChatByIdResponse struct {
 	CreateChatResponse
-	UserKeys []UserKeyEntry		`json:"userKeys"`
-	Messages []MessageEntry   `json:"messages"`
-	Users    []UserEntry			`json:"users"`
+	UserKeys []UserKeyEntry `json:"userKeys"`
+	Messages []MessageEntry `json:"messages"`
+	Users    []UserEntry    `json:"users"`
 }

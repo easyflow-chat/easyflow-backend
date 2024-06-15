@@ -99,7 +99,7 @@ func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *auth.JWTPay
 func GetChatPreviews(db *gorm.DB, jwtPayload *auth.JWTPayload) ([]GetChatPreviewResponse, *api.ApiError) {
 	fmt.Println("Attempting to get chat previews for user: ", jwtPayload.UserId)
 	var chatUserKeys []database.ChatUserKeys
-	chatPreviews:= []GetChatPreviewResponse {}
+	chatPreviews := []GetChatPreviewResponse{}
 
 	if err := db.Where("user_id = ?", jwtPayload.UserId).Find(&chatUserKeys).Error; err != nil {
 		fmt.Println("Error getting chats for user: ", err)
