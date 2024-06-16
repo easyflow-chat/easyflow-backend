@@ -5,7 +5,9 @@ import (
 	"easyflow-backend/src/api/auth"
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
+	"easyflow-backend/src/middleware"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +15,7 @@ import (
 )
 
 func RegisterUserEndpoints(r *gin.RouterGroup) {
+	r.Use(middleware.LoggerMiddleware("User"))
 	r.POST("/signup", CreateUserController)
 	r.GET("/", auth.AuthGuard(), GetUserController)
 	r.GET("/profile-picture", auth.AuthGuard(), GetProfilePictureController)
@@ -22,6 +25,7 @@ func RegisterUserEndpoints(r *gin.RouterGroup) {
 
 func CreateUserController(c *gin.Context) {
 	var payload CreateUserRequest
+
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, api.ApiError{
 			Code:    http.StatusBadRequest,
@@ -38,6 +42,11 @@ func CreateUserController(c *gin.Context) {
 			Details: api.TranslateError(err),
 		})
 		return
+	}
+
+	logger, ok := c.Get("logger")
+	if !ok {
+		log.Println("Logger not found in context")
 	}
 
 	db, ok := c.Get("db")
@@ -58,7 +67,7 @@ func CreateUserController(c *gin.Context) {
 		return
 	}
 
-	user, err := CreateUser(db.(*gorm.DB), &payload, cfg.(*common.Config))
+	user, err := CreateUser(db.(*gorm.DB), &payload, cfg.(*common.Config), logger.(*common.Logger))
 	if err != nil {
 		c.JSON(err.Code, err)
 		return

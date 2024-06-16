@@ -2,7 +2,6 @@ package user
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"easyflow-backend/src/api"
@@ -15,8 +14,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config) (*CreateUserResponse, *api.ApiError) {
-	log.Println("Attempting to create user with email: ", payload.Email)
+func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, logger *common.Logger) (*CreateUserResponse, *api.ApiError) {
+	logger.Printf("Attempting to create user with email: ", payload.Email)
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err == nil {
 		return nil, &api.ApiError{
@@ -27,7 +26,7 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config) (*C
 
 	password, err := bcrypt.GenerateFromPassword([]byte(payload.Password), cfg.SaltRounds)
 	if err != nil {
-		log.Println("Error hashing password: ", err)
+		logger.Printf("Error hashing password: ", err)
 		return nil, &api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
@@ -45,12 +44,14 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config) (*C
 	}
 
 	if err := db.Create(&user).Error; err != nil {
-		log.Println("Error creating user: ", err)
+		logger.Printf("Error creating user: ", err)
 		return nil, &api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
 		}
 	}
+
+	logger.Printf("User created with email: ", payload.Email)
 
 	return &CreateUserResponse{
 		Id:        user.Id,
