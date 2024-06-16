@@ -48,13 +48,14 @@ func LoadDefaultConfig() *Config {
 	}
 
 	return &Config{
+		GormConfig: gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+			DisableForeignKeyConstraintWhenMigrating: true,
+		},
 		DatabaseURL: getEnv("DATABASE_URL", ""),
 		SaltRounds:  getEnvInt("SALT_OR_ROUNDS", 10),
 		Port:        getEnv("PORT", "8080"),
 		JwtSecret:   getEnv("JWT_SECRET", "public_secret"),
 		DebugMode:   getEnv("DEBUG_MODE", "false") == "true",
-		GormConfig: gorm.Config{
-			Logger: logger.Default.LogMode(logger.Info),
-		},
 	}
 }
