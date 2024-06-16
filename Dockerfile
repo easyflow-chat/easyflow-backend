@@ -16,6 +16,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./bin/easyflow-ba
 # Production stage
 FROM nginx:alpine as production
 
+ARG CLOUDFLARE_ORIGIN_CERTIFICATE
+ARG CLOUDFLARE_ORIGIN_CA_KEY
+
 # Add the appuser and appgroup
 RUN addgroup -g 2000 -S appgroup
 RUN adduser -DH -s /sbin/nologin -u 2000 -G appgroup -S appuser
@@ -29,6 +32,11 @@ WORKDIR /app
 COPY --chown=appuser:appgroup --from=builder /app/bin/easyflow-backend ./easyflow-backend
 COPY --chown=appuser:appgroup --from=builder /app/nginx.conf /etc/nginx/nginx.conf
 COPY --chown=appuser:appgroup --from=builder /app/entrypoint.sh ./entrypoint.sh
+
+# Create certificates
+RUN echo "${CLOUDFLARE_ORIGIN_CERTIFICATE}" > /etc/ssl/backend-easyflow.pem
+RUN echo "${CLOUDFLARE_ORIGIN_CA_KEY}" > /etc/ssl/backend-easyflow.key
+RUN chown -R appuser:appgroup /etc/ssl/
 
 # Create the necessary directories with correct permissions
 RUN mkdir -p /var/ && \
