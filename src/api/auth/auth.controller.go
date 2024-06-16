@@ -5,7 +5,6 @@ import (
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
 	"easyflow-backend/src/middleware"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -40,12 +39,12 @@ func LoginController(c *gin.Context) {
 
 	raw_logger, ok := c.Get("logger")
 	if !ok {
-		log.Println("Logger not found in context")
+		panic("[Auth] Logger not found in context")
 	}
 
 	logger, ok := raw_logger.(*common.Logger)
 	if !ok {
-		log.Println("Type assertion to *common.Logger failed")
+		panic("[Auth] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for login")
@@ -105,12 +104,12 @@ func RefreshController(c *gin.Context) {
 
 	raw_logger, ok := c.Get("logger")
 	if !ok {
-		log.Println("Logger not found in context")
+		panic("[Auth] Logger not found in context")
 	}
 
 	logger, ok := raw_logger.(*common.Logger)
 	if !ok {
-		log.Println("Type assertion to *common.Logger failed")
+		panic("[Auth] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for token refresh")

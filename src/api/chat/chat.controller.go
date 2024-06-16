@@ -6,7 +6,6 @@ import (
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
 	"easyflow-backend/src/middleware"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -43,12 +42,12 @@ func CreateChatController(c *gin.Context) {
 
 	raw_logger, ok := c.Get("logger")
 	if !ok {
-		log.Println("Logger not found in context")
+		panic("[Chat] Logger not found in context")
 	}
 
 	logger, ok := raw_logger.(*common.Logger)
 	if !ok {
-		log.Println("Type assertion to *common.Logger failed")
+		panic("[Chat] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for creating chat")
@@ -115,12 +114,12 @@ func GetChatPreviewsController(c *gin.Context) {
 
 	raw_logger, ok := c.Get("logger")
 	if !ok {
-		log.Println("Logger not found in context")
+		panic("[Chat] Logger not found in context")
 	}
 
 	logger, ok := raw_logger.(*common.Logger)
 	if !ok {
-		log.Println("Type assertion to *common.Logger failed")
+		panic("[Chat] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for getting chat previews")
@@ -167,12 +166,12 @@ func GetChatByIdController(c *gin.Context) {
 
 	raw_logger, ok := c.Get("logger")
 	if !ok {
-		log.Println("Logger not found in context")
+		panic("[Chat] Logger not found in context")
 	}
 
 	logger, ok := raw_logger.(*common.Logger)
 	if !ok {
-		log.Println("Type assertion to *common.Logger failed")
+		panic("[Chat] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for getting chat by id")

@@ -7,7 +7,6 @@ import (
 	"easyflow-backend/src/enum"
 	"easyflow-backend/src/middleware"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -46,12 +45,12 @@ func CreateUserController(c *gin.Context) {
 
 	raw_logger, ok := c.Get("logger")
 	if !ok {
-		log.Println("Logger not found in context")
+		panic("[User] Logger not found in context")
 	}
 
 	logger, ok := raw_logger.(*common.Logger)
 	if !ok {
-		log.Println("Type assertion to *common.Logger failed")
+		panic("[User] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for creating user")
@@ -104,12 +103,12 @@ func GetUserController(c *gin.Context) {
 
 	raw_logger, ok := c.Get("logger")
 	if !ok {
-		panic("Logger not found in context")
+		panic("[User] Logger not found in context")
 	}
 
 	logger, ok := raw_logger.(*common.Logger)
 	if !ok {
-		panic("Type assertion to *common.Logger failed")
+		panic("[User] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for getting user")
