@@ -7,6 +7,7 @@ import (
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/database"
 	"easyflow-backend/src/middleware"
+	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -37,26 +38,30 @@ func main() {
 	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))
 	router.Use(middleware.ConfigMiddleware(cfg))
 	//TODO: Do we need this?
-	//logger := common.NewLogger(os.Stdout, "Main")
+	logger := common.NewLogger(os.Stdout, "Main")
 	//router.Use(GinLoggerMiddleware(logger))
 	router.Use(gin.Recovery())
 
 	//register user endpoints
 	userEndpoints := router.Group("/user")
 	{
+		logger.Printf("Registering user endpoints")
 		user.RegisterUserEndpoints(userEndpoints)
 	}
 
 	authEndpoints := router.Group("/auth")
 	{
+		logger.Printf("Registering auth endpoints")
 		auth.RegisterAuthEndpoints(authEndpoints)
 	}
 
 	chatEndpoints := router.Group("/chat")
 	{
+		logger.Printf("Registering chat endpoints")
 		chat.RegisterChatEndpoints(chatEndpoints)
 	}
 
+	logger.Printf("Starting server on port %s", cfg.Port)
 	router.Run(":" + cfg.Port)
 }
 
