@@ -62,3 +62,30 @@ func (l *Logger) Printf(format string, args ...interface{}) {
 	formattedMessage := fmt.Sprintf(format, args...)
 	_, _ = l.Target.Write([]byte(string(green) + "[" + getLocalTime() + "][" + module_name + "] " + formattedMessage + string(reset) + "\n"))
 }
+
+func (l *Logger) PrintfError(format string, args ...interface{}) {
+	l.LogMutex.Lock()
+	defer l.LogMutex.Unlock()
+
+	module_name := l.Module.Load().(string)
+	formattedMessage := fmt.Sprintf(format, args...)
+	_, _ = l.Target.Write([]byte(string(red) + "[" + getLocalTime() + "][" + module_name + "] " + formattedMessage + string(reset) + "\n"))
+}
+
+func (l *Logger) PrintfWarning(format string, args ...interface{}) {
+	l.LogMutex.Lock()
+	defer l.LogMutex.Unlock()
+
+	module_name := l.Module.Load().(string)
+	formattedMessage := fmt.Sprintf(format, args...)
+	_, _ = l.Target.Write([]byte(string(yellow) + "[" + getLocalTime() + "][" + module_name + "] " + formattedMessage + string(reset) + "\n"))
+}
+
+func (l *Logger) PrintfInfo(format string, args ...interface{}) {
+	l.LogMutex.Lock()
+	defer l.LogMutex.Unlock()
+
+	module_name := l.Module.Load().(string)
+	formattedMessage := fmt.Sprintf(format, args...)
+	_, _ = l.Target.Write([]byte(string(blue) + "[" + getLocalTime() + "][" + module_name + "] " + formattedMessage + string(reset) + "\n"))
+}

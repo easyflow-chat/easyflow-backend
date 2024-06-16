@@ -17,6 +17,7 @@ type Config struct {
 	DatabaseURL string
 	SaltRounds  int
 	Port        string
+	DebugMode   bool
 	//jwt
 	JwtSecret string
 }
@@ -47,12 +48,13 @@ func LoadDefaultConfig() *Config {
 	}
 
 	return &Config{
-		GormConfig: gorm.Config{
-			Logger: logger.Default.LogMode(logger.Error),
-		},
 		DatabaseURL: getEnv("DATABASE_URL", ""),
 		SaltRounds:  getEnvInt("SALT_OR_ROUNDS", 10),
 		Port:        getEnv("PORT", "8080"),
 		JwtSecret:   getEnv("JWT_SECRET", "public_secret"),
+		DebugMode:   getEnv("DEBUG_MODE", "false") == "true",
+		GormConfig: gorm.Config{
+			Logger: logger.Default.LogMode(logger.Error),
+		},
 	}
 }

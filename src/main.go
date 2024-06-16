@@ -7,21 +7,25 @@ import (
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/database"
 	"easyflow-backend/src/middleware"
-	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm/logger"
 )
 
 func main() {
 	cfg := common.LoadDefaultConfig()
 	dbInst, err := database.NewDatabaseInst(cfg.DatabaseURL, &cfg.GormConfig)
+
 	if err != nil {
 		panic(err)
 	}
 
-	logger := common.NewLogger(os.Stdout, "Main")
+	if !cfg.DebugMode {
+		gin.SetMode(gin.ReleaseMode)
+		dbInst.GetClient().Logger.LogMode(logger.Silent)
+	}
 
 	err = dbInst.Migrate()
 	if err != nil {
@@ -32,7 +36,9 @@ func main() {
 	router.Use(cors.Default())
 	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))
 	router.Use(middleware.ConfigMiddleware(cfg))
-	router.Use(GinLoggerMiddleware(logger))
+	//TODO: Do we need this?
+	//logger := common.NewLogger(os.Stdout, "Main")
+	//router.Use(GinLoggerMiddleware(logger))
 	router.Use(gin.Recovery())
 
 	//register user endpoints
