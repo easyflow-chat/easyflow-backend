@@ -25,7 +25,7 @@ func main() {
 
 	if !cfg.DebugMode {
 		gin.SetMode(gin.ReleaseMode)
-		dbInst.GetClient().Logger.LogMode(logger.Silent)
+		dbInst.SetLogMode(logger.Silent)
 	}
 
 	err = dbInst.Migrate()

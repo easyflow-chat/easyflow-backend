@@ -54,7 +54,7 @@ func LoadDefaultConfig() *Config {
 		JwtSecret:   getEnv("JWT_SECRET", "public_secret"),
 		DebugMode:   getEnv("DEBUG_MODE", "false") == "true",
 		GormConfig: gorm.Config{
-			Logger: logger.Default.LogMode(logger.Error),
+			Logger: logger.Default.LogMode(logger.Info),
 		},
 	}
 }
