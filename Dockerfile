@@ -31,11 +31,8 @@ COPY --chown=appuser:appgroup --from=builder /app/nginx.conf /etc/nginx/nginx.co
 COPY --chown=appuser:appgroup --from=builder /app/entrypoint.sh ./entrypoint.sh
 
 # Create the necessary directories with correct permissions
-RUN mkdir -p /var/cache/nginx/client_temp && \
-    chown -R appuser:appgroup /var/cache/nginx && \
-    mkdir -p /var/run/ && \
-    chown -R appuser:appgroup /var/run/
-
+RUN mkdir -p /var/ && \
+    chown -R appuser:appgroup /var/
 
 # Change the user to appuser
 USER appuser
