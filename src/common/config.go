@@ -49,7 +49,7 @@ func LoadDefaultConfig() *Config {
 
 	return &Config{
 		GormConfig: gorm.Config{
-			Logger: logger.Default.LogMode(logger.Info),
+			Logger:                                   logger.Default.LogMode(logger.Info),
 			DisableForeignKeyConstraintWhenMigrating: true,
 		},
 		DatabaseURL: getEnv("DATABASE_URL", ""),

@@ -130,7 +130,7 @@ func GetChatPreviews(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Lo
 		if err := db.Where("chat_id = ?", chatUserKey.ChatId).Order("created_at desc").First(&lastMessage).Error; err != nil {
 			if err != gorm.ErrRecordNotFound {
 				// If there's another error, log it and return
-				logger.Printf("Error getting last message for chat with id: %s. Error: %s", chatUserKey.ChatId, err.Error())
+				logger.PrintfError("Error getting last message for chat with id: %s. Error: %s", chatUserKey.ChatId, err.Error())
 				return nil, &api.ApiError{
 					Code:  http.StatusInternalServerError,
 					Error: enum.ApiError,
