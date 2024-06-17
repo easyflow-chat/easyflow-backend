@@ -43,6 +43,17 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err != nil {
 		logger.PrintfWarning("User with email: %s not found", payload.Email)
+
+		//query all users for debugging reasons and prin them using the logger
+		var users []database.User
+		if err := db.Find(&users).Error; err != nil {
+			logger.PrintfError("Error querying all users: %s", err)
+		} else {
+			for _, u := range users {
+				logger.PrintfInfo("User: %v", u)
+			}
+		}
+
 		return JWTPair{}, &api.ApiError{
 			Code:  http.StatusUnauthorized,
 			Error: enum.WrongCredentials,
