@@ -1,0 +1,10 @@
+.github
+.vscode
+backup
+bin
+docker
+scripts
+.pre-commit-config.yaml
+.gitignore
+README.md
+example.env

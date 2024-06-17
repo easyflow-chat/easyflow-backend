@@ -1,4 +1,9 @@
 #!/bin/sh
-node ./dist/src/migrate.js
+#Watch for errors and exit immediately
+set -e
 
-node ./dist/src/main.js
+# Start the Go application in the background
+/app/easyflow-backend &
+
+# Start Nginx in the foreground
+nginx -g 'daemon off;'

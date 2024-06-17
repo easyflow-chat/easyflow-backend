@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt
+        entry: gofmt -w ./src/
+        language: system
+        pass_filenames: false
+
+      - id: go-mod-tidy
+        name: go-mod-tidy
+        entry: go mod tidy
+        language: system
+        pass_filenames: false
+        require_serial: true

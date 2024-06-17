@@ -1,27 +1,41 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+name: Build Project
 
-name: Builder
-
-on: [push, pull_request]
+# Trigger the workflow on push or pull request to "main" branch or tags that match 'v*'
+on:
+  push:
+    branches:
+      - main
+      - release/*
+    tags:
+      - 'v*'
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        registry-url: 'https://registry.npmjs.org'
-  
-    - run: npm ci
-    - run: npm run build
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+
+      - name: Build
+        run: |
+          # Ensure the binary is statically linked to avoid libc issues with Alpine
+          CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./bin/easyflow-backend ./src
+
+      - name: Build Docker image
+        run: |
+          docker build -t easyflow-backend-image -f Docker/Dockerfile .
+      
+      - name: Save Docker image as tar file
+        run: |
+          docker save easyflow-backend-image:latest -o easyflow-backend-image.tar
+
+      - name: Upload Docker image as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: easyflow-backend-image
+          path: easyflow-backend-image.tar

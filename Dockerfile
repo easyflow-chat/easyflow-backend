@@ -1,8 +1,25 @@
-FROM node:20-alpine as base
+# Build stage
+FROM golang:1.22.4 as builder
 
-#Uninstall yarn
-RUN npm uninstall -g yarn
+WORKDIR /app
+COPY . .
 
+#Clean up the go modules
+RUN go mod tidy
+
+# Lint the Go application
+RUN gofmt -w .
+
+# Build the Go application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./bin/easyflow-backend ./src
+
+# Production stage
+FROM nginx:alpine as production
+
+ARG CLOUDFLARE_ORIGIN_CERTIFICATE
+ARG CLOUDFLARE_ORIGIN_CA_KEY
+
+# Add the appuser and appgroup
 RUN addgroup -g 2000 -S appgroup
 RUN adduser -DH -s /sbin/nologin -u 2000 -G appgroup -S appuser
 
@@ -10,58 +27,34 @@ RUN mkdir /app
 RUN chown -R appuser:appgroup /app
 
 WORKDIR /app
-COPY --chown=appuser:appgroup /prisma /app/prisma
-COPY --chown=appuser:appgroup /entrypoint.sh /app/entrypoint.sh
 
-#Get deleted after build
-COPY --chown=appuser:appgroup /enums /app/enums
-COPY --chown=appuser:appgroup /src /app/src
-COPY --chown=appuser:appgroup /.eslintrc.json /app/.eslintrc.json
-COPY --chown=appuser:appgroup /.prettierrc /app/.prettierrc
-COPY --chown=appuser:appgroup /package-lock.json /app/package-lock.json
-COPY --chown=appuser:appgroup /package.json /app/package.json
-COPY --chown=appuser:appgroup /tsconfig.build.json /app/tsconfig.build.json
-COPY --chown=appuser:appgroup /tsconfig.json /app/tsconfig.json
+# Copy the binary from the builder image
+COPY --chown=appuser:appgroup --from=builder /app/bin/easyflow-backend ./easyflow-backend
+COPY --chown=appuser:appgroup --from=builder /app/nginx.conf /etc/nginx/nginx.conf
+COPY --chown=appuser:appgroup --from=builder /app/entrypoint.sh ./entrypoint.sh
 
-#Install packages
-RUN npm ci
+# Create certificates
+RUN echo "${CLOUDFLARE_ORIGIN_CERTIFICATE}" > /etc/ssl/backend-easyflow.pem
+RUN echo "${CLOUDFLARE_ORIGIN_CA_KEY}" > /etc/ssl/backend-easyflow.key
+RUN chown -R appuser:appgroup /etc/ssl/
 
-#Lint
-RUN npm run lint
+# Create the necessary directories with correct permissions
+RUN mkdir -p /var/ /logs/ && \
+    chown -R appuser:appgroup /var/ /logs/
 
-#Build
-RUN npm run build
-
-#Reinstall production packages
-RUN rm -rf node_modules
-RUN npm ci --omit=dev
-
-#Generate @prisma/client
-RUN npm run prisma:generate
-
-#Romve build dependencies
-RUN rm -rf /enums
-RUN rm -rf /src
-RUN rm -rf /.eslintrc.json
-RUN rm -rf /.prettierrc
-RUN rm -rf /package-lock.json
-RUN rm -rf /package.json
-RUN rm -rf /tsconfig.build.json
-RUN rm -rf /tsconfig.json
-
-
-#Uninstall npm
-RUN npm uninstall -g npm
-
+# Change the user to appuser
 USER appuser
 
+# Metadata
 LABEL org.opencontainers.image.authors="nico.benninger43@gmail.com"
-LABEL org.opencontainers.image.source="https://github.com/Dragon437619/easyflow-backend"
-LABEL org.opencontainers.image.title="Backend Frontend"
+LABEL org.opencontainers.image.source="https://github.com/easyflow-chat/easyflow-backend"
+LABEL org.opencontainers.image.title="Easyflow Backend"
 LABEL org.opencontainers.image.description="Backend for Easyflow chat application"
 
-ENV APPLICATION_ROOT="/app"
-ENV NODE_ENV="production"
+# Change the permissions
+RUN chmod +x ./easyflow-backend
 
+# Entrypoint script to run both nginx and the Go application
 RUN chmod +x ./entrypoint.sh
-ENTRYPOINT ./entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
