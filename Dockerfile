@@ -39,8 +39,8 @@ RUN echo "${CLOUDFLARE_ORIGIN_CA_KEY}" > /etc/ssl/backend-easyflow.key
 RUN chown -R appuser:appgroup /etc/ssl/
 
 # Create the necessary directories with correct permissions
-RUN mkdir -p /var/ && \
-    chown -R appuser:appgroup /var/
+RUN mkdir -p /var/ /logs/ && \
+    chown -R appuser:appgroup /var/ /logs/
 
 # Change the user to appuser
 USER appuser
