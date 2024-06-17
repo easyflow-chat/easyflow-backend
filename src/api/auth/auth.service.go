@@ -5,7 +5,6 @@ import (
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/database"
 	"easyflow-backend/src/enum"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -40,10 +39,10 @@ func ValidateToken(cfg *common.Config, token string) (*JWTPayload, error) {
 	return claims, nil
 }
 
-func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPair, *api.ApiError) {
+func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger *common.Logger) (JWTPair, *api.ApiError) {
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err != nil {
-		fmt.Println("Error finding user: ", err)
+		logger.PrintfWarning("User with email: %s not found", payload.Email)
 		return JWTPair{}, &api.ApiError{
 			Code:  http.StatusUnauthorized,
 			Error: enum.WrongCredentials,
@@ -52,7 +51,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPa
 
 	//check password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password)); err != nil {
-		fmt.Println("Error comparing password: ", err)
+		logger.PrintfWarning("Wrong password for user with email: %s", payload.Email)
 		return JWTPair{}, &api.ApiError{
 			Code:  http.StatusUnauthorized,
 			Error: enum.WrongCredentials,
@@ -89,7 +88,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPa
 	accessToken, err := generateJwt(cfg, &accessTokenPayload)
 
 	if err != nil {
-		fmt.Println("Error generating jwt: ", err)
+		logger.PrintfError("Error generating jwt: %s", err)
 		return JWTPair{}, &api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
@@ -99,7 +98,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPa
 	refreshToken, err := generateJwt(cfg, &refreshTokenPayload)
 
 	if err != nil {
-		fmt.Println("Error generating jwt: ", err)
+		logger.PrintfError("Error generating jwt: %s", err)
 		return JWTPair{}, &api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
@@ -115,8 +114,9 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPa
 
 	//check if user already has a refresh token
 	if err := db.Where("user_id = ?", user.Id).First(&entry).Error; err != nil {
+		logger.PrintfInfo("User with email: %s does not have a refresh token", payload.Email)
 		if err := db.Create(&entry).Error; err != nil {
-			fmt.Println("Error creating user key: ", err)
+			logger.PrintfError("Error creating user key: %s", err)
 			return JWTPair{}, &api.ApiError{
 				Code:  http.StatusInternalServerError,
 				Error: enum.ApiError,
@@ -126,7 +126,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPa
 		entry.RefreshToken = refreshToken
 		entry.ExpiredAt = expires
 		if err := db.Save(&entry).Error; err != nil {
-			fmt.Println("Error updating user key: ", err)
+			logger.PrintfError("Error updating user key: %s", err)
 			return JWTPair{}, &api.ApiError{
 				Code:  http.StatusInternalServerError,
 				Error: enum.ApiError,
@@ -140,11 +140,11 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest) (JWTPa
 	}, nil
 }
 
-func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload) (JWTPair, *api.ApiError) {
+func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger *common.Logger) (JWTPair, *api.ApiError) {
 	//get user from db
 	var user database.User
 	if err := db.Where("id = ?", payload.UserId).First(&user).Error; err != nil {
-		fmt.Println("Error finding user: ", err)
+		logger.PrintfInfo("User with id: %s not found", payload.UserId)
 		return JWTPair{}, &api.ApiError{
 			Code:  http.StatusUnauthorized,
 			Error: enum.Unauthorized,
@@ -180,7 +180,7 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload) (JWTPa
 
 	accessToken, err := generateJwt(cfg, &accessTokenPayload)
 	if err != nil {
-		fmt.Println("Error generating jwt: ", err)
+		logger.PrintfError("Error generating jwt: %s", err)
 		return JWTPair{}, &api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,

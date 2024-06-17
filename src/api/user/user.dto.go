@@ -8,7 +8,7 @@ type CreateUserRequest struct {
 	Password   string `json:"password" validate:"required,gte=8"`
 	PublicKey  string `json:"publicKey" validate:"required"`
 	PrivateKey string `json:"privateKey" validate:"required"`
-	Iv         string `json:"iv" validate:"required"`
+	Iv         string `json:"iv" validate:"required,lte=16"`
 }
 
 type CreateUserResponse struct {

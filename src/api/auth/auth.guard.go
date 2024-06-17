@@ -6,6 +6,7 @@ import (
 	"easyflow-backend/src/database"
 	"easyflow-backend/src/enum"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -36,9 +37,12 @@ func AuthGuard() gin.HandlerFunc {
 			return
 		}
 
+		logger := common.NewLogger(os.Stdout, "AuthGuard")
+
 		// Validate token
 		payload, err := ValidateToken(cfg.(*common.Config), token)
 		if err != nil {
+			logger.PrintfError("Error validating token: %s", err.Error())
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
@@ -48,6 +52,7 @@ func AuthGuard() gin.HandlerFunc {
 		}
 
 		if payload.ExpiresAt.Time.Before(time.Now()) {
+			logger.PrintfWarning("Token expired")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.ExpiredToken,
@@ -57,6 +62,7 @@ func AuthGuard() gin.HandlerFunc {
 		}
 
 		if payload.Issuer != "easyflow" {
+			logger.PrintfWarning("Invalid issuer")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
@@ -66,6 +72,7 @@ func AuthGuard() gin.HandlerFunc {
 		}
 
 		if !payload.IsAccess {
+			logger.PrintfWarning("Invalid token type")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.InvalidCookie,
@@ -103,8 +110,11 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
+		logger := common.NewLogger(os.Stdout, "RefreshAuthGuard")
+
 		db, ok := c.Get("db")
 		if !ok {
+			logger.PrintfError("Database not found in context")
 			c.JSON(http.StatusInternalServerError, api.ApiError{
 				Code:  http.StatusInternalServerError,
 				Error: enum.ApiError,
@@ -115,6 +125,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 
 		payload, err := ValidateToken(cfg.(*common.Config), token)
 		if err != nil {
+			logger.PrintfError("Error validating token: %s", err.Error())
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
@@ -124,6 +135,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 		}
 
 		if payload.ExpiresAt.Time.Before(time.Now()) {
+			logger.PrintfWarning("Token expired")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.ExpiredToken,
@@ -133,6 +145,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 		}
 
 		if payload.Issuer != "easyflow" {
+			logger.PrintfWarning("Invalid issuer")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
@@ -142,6 +155,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 		}
 
 		if payload.IsAccess {
+			logger.PrintfWarning("Invalid token type")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.InvalidCookie,
@@ -151,6 +165,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 		}
 
 		if err := db.(*gorm.DB).Where("refresh_token = ?", token).First(&database.UserKeys{}).Error; err != nil {
+			logger.PrintfWarning("Invalid refresh token")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.InvalidRefresh,

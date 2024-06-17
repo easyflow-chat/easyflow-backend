@@ -3,6 +3,7 @@ package database
 import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type DatabaseInst struct {
@@ -33,4 +34,8 @@ func GetUserByEmail(db *gorm.DB, email *string) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+func (d *DatabaseInst) SetLogMode(mode logger.LogLevel) {
+	d.client.Logger.LogMode(mode)
 }
