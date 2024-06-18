@@ -1,13 +1,7 @@
 name: Build Project
 
 # Trigger the workflow on push or pull request to "main" branch or tags that match 'v*'
-on:
-  push:
-    branches:
-      - main
-      - release/*
-    tags:
-      - 'v*'
+on: [push, pull_request]
 
 jobs:
   build:
@@ -23,19 +17,4 @@ jobs:
 
       - name: Build
         run: |
-          # Ensure the binary is statically linked to avoid libc issues with Alpine
-          CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./bin/easyflow-backend ./src
-
-      - name: Build Docker image
-        run: |
-          docker build -t easyflow-backend-image -f Docker/Dockerfile .
-      
-      - name: Save Docker image as tar file
-        run: |
-          docker save easyflow-backend-image:latest -o easyflow-backend-image.tar
-
-      - name: Upload Docker image as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: easyflow-backend-image
-          path: easyflow-backend-image.tar
+          go build -a -installsuffix cgo -o ./bin/easyflow-backend ./src
