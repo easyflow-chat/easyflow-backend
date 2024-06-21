@@ -22,8 +22,13 @@ func RegisterUserEndpoints(r *gin.RouterGroup) {
 }
 
 func CreateUserController(c *gin.Context) {
-	payload, logger, db, cfg, ok := common.SetupEndpoint[CreateUserRequest](c, true)
-	if !ok {
+	payload, logger, db, cfg, errors := common.SetupEndpoint[CreateUserRequest](c, "User")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
 		return
 	}
 
@@ -39,8 +44,13 @@ func CreateUserController(c *gin.Context) {
 }
 
 func GetUserController(c *gin.Context) {
-	_, logger, db, _, ok := common.SetupEndpoint[any](c, false)
-	if !ok {
+	_, logger, db, _, errors := common.SetupEndpoint[any](c, "User")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
 		return
 	}
 
@@ -76,8 +86,13 @@ func GetUserController(c *gin.Context) {
 }
 
 func GetProfilePictureController(c *gin.Context) {
-	_, logger, db, _, ok := common.SetupEndpoint[any](c, false)
-	if !ok {
+	_, logger, db, _, errors := common.SetupEndpoint[any](c, "User")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
 		return
 	}
 
@@ -116,8 +131,13 @@ func GetProfilePictureController(c *gin.Context) {
 }
 
 func UpdateUserController(c *gin.Context) {
-	payload, logger, db, _, ok := common.SetupEndpoint[UpdateUserRequest](c, true)
-	if !ok {
+	payload, logger, db, _, errors := common.SetupEndpoint[UpdateUserRequest](c, "User")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
 		return
 	}
 
@@ -154,11 +174,15 @@ func UpdateUserController(c *gin.Context) {
 }
 
 func DeleteUserController(c *gin.Context) {
-	_, logger, db, _, ok := common.SetupEndpoint[CreateUserRequest](c, false)
-	if !ok {
+	_, logger, db, _, errors := common.SetupEndpoint[CreateUserRequest](c, "User")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
 		return
 	}
-
 	val, ok := c.Get("user")
 
 	if !ok {

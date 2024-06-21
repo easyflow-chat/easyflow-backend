@@ -20,8 +20,13 @@ func RegisterChatEndpoints(r *gin.RouterGroup) {
 }
 
 func CreateChatController(c *gin.Context) {
-	payload, logger, db, _, ok := common.SetupEndpoint[CreateChatRequest](c, true)
-	if !ok {
+	payload, logger, db, _, errors := common.SetupEndpoint[CreateChatRequest](c, "Chat")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
 		return
 	}
 
@@ -59,8 +64,13 @@ func CreateChatController(c *gin.Context) {
 }
 
 func GetChatPreviewsController(c *gin.Context) {
-	_, logger, db, _, ok := common.SetupEndpoint[any](c, false)
-	if !ok {
+	_, logger, db, _, errors := common.SetupEndpoint[any](c, "Chat")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
 		return
 	}
 
@@ -97,8 +107,13 @@ func GetChatPreviewsController(c *gin.Context) {
 }
 
 func GetChatByIdController(c *gin.Context) {
-	_, logger, db, _, ok := common.SetupEndpoint[any](c, false)
-	if !ok {
+	_, logger, db, _, errors := common.SetupEndpoint[any](c, "Chat")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
 		return
 	}
 

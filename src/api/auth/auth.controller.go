@@ -17,8 +17,13 @@ func RegisterAuthEndpoints(r *gin.RouterGroup) {
 }
 
 func LoginController(c *gin.Context) {
-	payload, logger, db, cfg, ok := common.SetupEndpoint[LoginRequest](c, true)
-	if !ok {
+	payload, logger, db, cfg, errors := common.SetupEndpoint[LoginRequest](c, "Auth")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
 		return
 	}
 
@@ -39,8 +44,13 @@ func LoginController(c *gin.Context) {
 }
 
 func RefreshController(c *gin.Context) {
-	_, logger, db, cfg, ok := common.SetupEndpoint[any](c, false)
-	if !ok {
+	_, logger, db, cfg, errors := common.SetupEndpoint[any](c, "Auth")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
 		return
 	}
 
