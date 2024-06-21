@@ -3,7 +3,6 @@ package common
 import (
 	"easyflow-backend/src/api"
 	"fmt"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -11,17 +10,17 @@ import (
 
 func getPayload[T any](c *gin.Context) (*T, error) {
 	var payload T
-	body := c.Request.Body
-	if body != http.NoBody {
+	method := c.Request.Method
+	if method != "GET" && method != "DELETE" {
 		if err := c.ShouldBindJSON(&payload); err != nil {
 			return nil, err
 		}
 
 		if err := api.Validate.Struct(payload); err != nil {
+			fmt.Println(err)
 			return nil, err
 		}
 	}
-	body.Close()
 
 	return &payload, nil
 }
@@ -68,7 +67,7 @@ func getLogger(c *gin.Context) (*Logger, error) {
 	return logger, nil
 }
 
-func SetupEndpoint[T any](c *gin.Context, loggerName string) (*T, *Logger, *gorm.DB, *Config, []error) {
+func SetupEndpoint[T any](c *gin.Context, loggerName string) (*T, *Logger, *gorm.DB, *Config, []string) {
 	var errors []error
 	payload, err := getPayload[T](c)
 	if err != nil {
@@ -90,5 +89,12 @@ func SetupEndpoint[T any](c *gin.Context, loggerName string) (*T, *Logger, *gorm
 		errors = append(errors, err)
 	}
 
-	return payload, logger, db, cfg, errors
+	var serializableErrors []string
+
+	for _, e := range errors {
+		errArr := api.TranslateError(e)
+		serializableErrors = append(serializableErrors, errArr...)
+	}
+
+	return payload, logger, db, cfg, serializableErrors
 }
