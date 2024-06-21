@@ -43,7 +43,7 @@ type User struct {
 	Id             string         `gorm:"type:varchar(36);primaryKey"`
 	CreatedAt      time.Time      `gorm:"type:datetime;column:created_at;default:CURRENT_TIMESTAMP"`
 	UpdatedAt      time.Time      `gorm:"type:datetime;column:updated_at;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
-	Email          string         `gorm:"type:varchar(255);unique_index"`
+	Email          string         `gorm:"type:varchar(255);uniqueIndex"`
 	Password       string         `gorm:"type:text"`
 	Name           string         `gorm:"type:varchar(50)"`
 	ProfilePicture *string        `gorm:"column:profile_picture;type:varchar(2048)"`

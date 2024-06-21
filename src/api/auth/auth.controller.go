@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func RegisterAuthEndpoints(r *gin.RouterGroup) {
@@ -18,58 +17,19 @@ func RegisterAuthEndpoints(r *gin.RouterGroup) {
 }
 
 func LoginController(c *gin.Context) {
-	var payload LoginRequest
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    http.StatusBadRequest,
-			Error:   enum.MalformedRequest,
-			Details: err.Error(),
+	payload, logger, db, cfg, errors := common.SetupEndpoint[LoginRequest](c, "Auth")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
 		})
 		return
-	}
-
-	if err := api.Validate.Struct(payload); err != nil {
-		c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    http.StatusBadRequest,
-			Error:   enum.MalformedRequest,
-			Details: api.TranslateError(err),
-		})
-		return
-	}
-
-	raw_logger, ok := c.Get("logger")
-	if !ok {
-		panic("[Auth] Logger not found in context")
-	}
-
-	logger, ok := raw_logger.(*common.Logger)
-	if !ok {
-		panic("[Auth] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for login")
 
-	db, ok := c.Get("db")
-	if !ok {
-		logger.PrintfError("Database not found in context")
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-		return
-	}
-
-	cfg, ok := c.Get("config")
-	if !ok {
-		logger.PrintfError("Config not found in context")
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-		return
-	}
-
-	jwtPair, err := LoginService(db.(*gorm.DB), cfg.(*common.Config), &payload, logger)
+	jwtPair, err := LoginService(db, cfg, payload, logger)
 	if err != nil {
 		logger.PrintfError("Error logging in: %s", err.Details)
 		c.JSON(err.Code, err)
@@ -84,32 +44,14 @@ func LoginController(c *gin.Context) {
 }
 
 func RefreshController(c *gin.Context) {
-	db, ok := c.Get("db")
-	if !ok {
+	_, logger, db, cfg, errors := common.SetupEndpoint[any](c, "Auth")
+	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
 		})
 		return
-	}
-
-	cfg, ok := c.Get("config")
-	if !ok {
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-		return
-	}
-
-	raw_logger, ok := c.Get("logger")
-	if !ok {
-		panic("[Auth] Logger not found in context")
-	}
-
-	logger, ok := raw_logger.(*common.Logger)
-	if !ok {
-		panic("[Auth] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for token refresh")
@@ -124,7 +66,7 @@ func RefreshController(c *gin.Context) {
 		return
 	}
 
-	jwtPair, err := RefreshService(db.(*gorm.DB), cfg.(*common.Config), payload.(*JWTPayload), logger)
+	jwtPair, err := RefreshService(db, cfg, payload.(*JWTPayload), logger)
 
 	if err != nil {
 		logger.PrintfError("Error refreshing token: %s", err.Details)

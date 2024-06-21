@@ -10,7 +10,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func RegisterUserEndpoints(r *gin.RouterGroup) {
@@ -23,57 +22,19 @@ func RegisterUserEndpoints(r *gin.RouterGroup) {
 }
 
 func CreateUserController(c *gin.Context) {
-	var payload CreateUserRequest
-
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    http.StatusBadRequest,
-			Error:   enum.MalformedRequest,
-			Details: err.Error(),
+	payload, logger, db, cfg, errors := common.SetupEndpoint[CreateUserRequest](c, "User")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
 		})
 		return
-	}
-
-	if err := api.Validate.Struct(payload); err != nil {
-		c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    http.StatusBadRequest,
-			Error:   enum.MalformedRequest,
-			Details: api.TranslateError(err),
-		})
-		return
-	}
-
-	raw_logger, ok := c.Get("logger")
-	if !ok {
-		panic("[User] Logger not found in context")
-	}
-
-	logger, ok := raw_logger.(*common.Logger)
-	if !ok {
-		panic("[User] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for creating user")
 
-	db, ok := c.Get("db")
-	if !ok {
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-		return
-	}
-
-	cfg, ok := c.Get("config")
-	if !ok {
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-		return
-	}
-
-	user, err := CreateUser(db.(*gorm.DB), &payload, cfg.(*common.Config), logger)
+	user, err := CreateUser(db, payload, cfg, logger)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
@@ -83,6 +44,16 @@ func CreateUserController(c *gin.Context) {
 }
 
 func GetUserController(c *gin.Context) {
+	_, logger, db, _, errors := common.SetupEndpoint[any](c, "User")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
+		return
+	}
+
 	val, ok := c.Get("user")
 	if !ok {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
@@ -101,28 +72,9 @@ func GetUserController(c *gin.Context) {
 		return
 	}
 
-	raw_logger, ok := c.Get("logger")
-	if !ok {
-		panic("[User] Logger not found in context")
-	}
-
-	logger, ok := raw_logger.(*common.Logger)
-	if !ok {
-		panic("[User] Type assertion to *common.Logger failed")
-	}
-
 	logger.Printf("Successfully validated request for getting user")
 
-	db, ok := c.Get("db")
-	if !ok {
-		logger.PrintfError("Database not found in context")
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-	}
-
-	userFromDb, err := GetUserById(db.(*gorm.DB), user, logger)
+	userFromDb, err := GetUserById(db, user, logger)
 
 	if err != nil {
 		logger.PrintfError("Error getting user: %s", err.Error)
@@ -134,6 +86,16 @@ func GetUserController(c *gin.Context) {
 }
 
 func GetProfilePictureController(c *gin.Context) {
+	_, logger, db, _, errors := common.SetupEndpoint[any](c, "User")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
+		return
+	}
+
 	val, ok := c.Get("user")
 	if !ok {
 		fmt.Println("User data not found in context")
@@ -154,28 +116,9 @@ func GetProfilePictureController(c *gin.Context) {
 		return
 	}
 
-	raw_logger, ok := c.Get("logger")
-	if !ok {
-		panic("Logger not found in context")
-	}
-
-	logger, ok := raw_logger.(*common.Logger)
-	if !ok {
-		panic("Type assertion to *common.Logger failed")
-	}
-
 	logger.Printf("Successfully validated request for getting profile picture")
 
-	db, ok := c.Get("db")
-	if !ok {
-		logger.PrintfError("Database not found in context")
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-	}
-
-	pic, err := GetProfilePicture(db.(*gorm.DB), user, logger)
+	pic, err := GetProfilePicture(db, user, logger)
 
 	if err != nil {
 		logger.PrintfError("Error getting profile picture: %s", err.Error)
@@ -188,6 +131,16 @@ func GetProfilePictureController(c *gin.Context) {
 }
 
 func UpdateUserController(c *gin.Context) {
+	payload, logger, db, _, errors := common.SetupEndpoint[UpdateUserRequest](c, "User")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
+		return
+	}
+
 	val, ok := c.Get("user")
 
 	if !ok {
@@ -206,47 +159,9 @@ func UpdateUserController(c *gin.Context) {
 		return
 	}
 
-	var payload UpdateUserRequest
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    http.StatusBadRequest,
-			Error:   enum.MalformedRequest,
-			Details: err.Error(),
-		})
-		return
-	}
-
-	if err := api.Validate.Struct(payload); err != nil {
-		c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    http.StatusBadRequest,
-			Error:   enum.MalformedRequest,
-			Details: api.TranslateError(err),
-		})
-		return
-	}
-
-	raw_logger, ok := c.Get("logger")
-	if !ok {
-		panic("Logger not found in context")
-	}
-
-	logger, ok := raw_logger.(*common.Logger)
-	if !ok {
-		panic("Type assertion to *common.Logger failed")
-	}
-
 	logger.Printf("Successfully validated request for updating user")
 
-	db, ok := c.Get("db")
-	if !ok {
-		logger.PrintfError("Database not found in context")
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-	}
-
-	updatedUser, err := UpdateUser(db.(*gorm.DB), user, &payload, logger)
+	updatedUser, err := UpdateUser(db, user, payload, logger)
 
 	if err != nil {
 		logger.PrintfError("Error updating user: %s", err.Error)
@@ -259,6 +174,15 @@ func UpdateUserController(c *gin.Context) {
 }
 
 func DeleteUserController(c *gin.Context) {
+	_, logger, db, _, errors := common.SetupEndpoint[CreateUserRequest](c, "User")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
+		return
+	}
 	val, ok := c.Get("user")
 
 	if !ok {
@@ -277,28 +201,9 @@ func DeleteUserController(c *gin.Context) {
 		return
 	}
 
-	raw_logger, ok := c.Get("logger")
-	if !ok {
-		panic("Logger not found in context")
-	}
-
-	logger, ok := raw_logger.(*common.Logger)
-	if !ok {
-		panic("Type assertion to *common.Logger failed")
-	}
-
 	logger.Printf("Successfully validated request for deleting user")
 
-	db, ok := c.Get("db")
-	if !ok {
-		logger.PrintfError("Database not found in context")
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-	}
-
-	err := DeleteUser(db.(*gorm.DB), user, logger)
+	err := DeleteUser(db, user, logger)
 
 	if err != nil {
 		logger.PrintfError("Error deleting user: %s", err.Error)
