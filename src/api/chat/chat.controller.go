@@ -9,58 +9,29 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func RegisterChatEndpoints(r *gin.RouterGroup) {
 	r.Use(auth.AuthGuard())
 	r.Use(middleware.LoggerMiddleware("Chat"))
+	r.Use(middleware.RateLimiter(1, 5))
 	r.POST("", CreateChatController)
 	r.GET("/preview", GetChatPreviewsController)
 	r.GET("/:chatId", GetChatByIdController)
 }
 
 func CreateChatController(c *gin.Context) {
-	var payload CreateChatRequest
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    http.StatusBadRequest,
-			Error:   enum.MalformedRequest,
-			Details: err.Error(),
+	payload, logger, db, _, errors := common.SetupEndpoint[CreateChatRequest](c, "Chat")
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
 		})
 		return
-	}
-
-	if err := api.Validate.Struct(payload); err != nil {
-		c.JSON(http.StatusBadRequest, api.ApiError{
-			Code:    http.StatusBadRequest,
-			Error:   enum.MalformedRequest,
-			Details: api.TranslateError(err),
-		})
-		return
-	}
-
-	raw_logger, ok := c.Get("logger")
-	if !ok {
-		panic("[Chat] Logger not found in context")
-	}
-
-	logger, ok := raw_logger.(*common.Logger)
-	if !ok {
-		panic("[Chat] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for creating chat")
-
-	db, ok := c.Get("db")
-	if !ok {
-		logger.PrintfError("Database not found in context")
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-		return
-	}
 
 	user, ok := c.Get("user")
 	if !ok {
@@ -82,7 +53,7 @@ func CreateChatController(c *gin.Context) {
 		return
 	}
 
-	chat, err := CreateChat(db.(*gorm.DB), &payload, jwtPayload, logger)
+	chat, err := CreateChat(db, payload, jwtPayload, logger)
 	if err != nil {
 		logger.PrintfError("Error creating chat: %s", err.Details)
 		c.JSON(err.Code, err)
@@ -94,11 +65,12 @@ func CreateChatController(c *gin.Context) {
 }
 
 func GetChatPreviewsController(c *gin.Context) {
-	db, ok := c.Get("db")
-	if !ok {
+	_, logger, db, _, errors := common.SetupEndpoint[any](c, "Chat")
+	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
 		})
 		return
 	}
@@ -110,16 +82,6 @@ func GetChatPreviewsController(c *gin.Context) {
 			Error: enum.ApiError,
 		})
 		return
-	}
-
-	raw_logger, ok := c.Get("logger")
-	if !ok {
-		panic("[Chat] Logger not found in context")
-	}
-
-	logger, ok := raw_logger.(*common.Logger)
-	if !ok {
-		panic("[Chat] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for getting chat previews")
@@ -134,7 +96,7 @@ func GetChatPreviewsController(c *gin.Context) {
 		return
 	}
 
-	chats, err := GetChatPreviews(db.(*gorm.DB), jwtPayload, logger)
+	chats, err := GetChatPreviews(db, jwtPayload, logger)
 	if err != nil {
 		logger.PrintfError("Error getting chat previews: %s", err.Details)
 		c.JSON(err.Code, err)
@@ -146,11 +108,12 @@ func GetChatPreviewsController(c *gin.Context) {
 }
 
 func GetChatByIdController(c *gin.Context) {
-	db, ok := c.Get("db")
-	if !ok {
+	_, logger, db, _, errors := common.SetupEndpoint[any](c, "Chat")
+	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
 		})
 		return
 	}
@@ -162,16 +125,6 @@ func GetChatByIdController(c *gin.Context) {
 			Error: enum.ApiError,
 		})
 		return
-	}
-
-	raw_logger, ok := c.Get("logger")
-	if !ok {
-		panic("[Chat] Logger not found in context")
-	}
-
-	logger, ok := raw_logger.(*common.Logger)
-	if !ok {
-		panic("[Chat] Type assertion to *common.Logger failed")
 	}
 
 	logger.Printf("Successfully validated request for getting chat by id")
@@ -188,7 +141,7 @@ func GetChatByIdController(c *gin.Context) {
 
 	chatId := c.Param("chatId")
 
-	chat, err := GetChatById(db.(*gorm.DB), chatId, jwtPayload, logger)
+	chat, err := GetChatById(db, chatId, jwtPayload, logger)
 	if err != nil {
 		logger.PrintfError("Error getting chat by id: %s", err.Details)
 		c.JSON(err.Code, err)
