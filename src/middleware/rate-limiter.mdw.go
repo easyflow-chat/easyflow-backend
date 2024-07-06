@@ -38,6 +38,7 @@ func RateLimiter(seconds int, limit int) gin.HandlerFunc {
 				Error:   "Rate limit exceeded",
 				Details: "Slow down buddy",
 			})
+			c.Header("Retry-After", "1")
 			c.Abort()
 		}
 
