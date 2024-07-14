@@ -14,6 +14,7 @@ import (
 func RegisterChatEndpoints(r *gin.RouterGroup) {
 	r.Use(auth.AuthGuard())
 	r.Use(middleware.LoggerMiddleware("Chat"))
+	r.Use(middleware.RateLimiter(1, 5))
 	r.POST("", CreateChatController)
 	r.GET("/preview", GetChatPreviewsController)
 	r.GET("/:chatId", GetChatByIdController)
