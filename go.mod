@@ -14,6 +14,8 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 )
 
+require golang.org/x/time v0.5.0
+
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/bytedance/sonic v1.11.8 // indirect

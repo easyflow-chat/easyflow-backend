@@ -14,7 +14,8 @@ import (
 
 func RegisterUserEndpoints(r *gin.RouterGroup) {
 	r.Use(middleware.LoggerMiddleware("User"))
-	r.POST("/signup", CreateUserController)
+	r.Use(middleware.RateLimiter(1, 4))
+	r.POST("/signup", middleware.RateLimiter(1, 0), CreateUserController)
 	r.GET("/", auth.AuthGuard(), GetUserController)
 	r.GET("/profile-picture", auth.AuthGuard(), GetProfilePictureController)
 	r.PUT("/", auth.AuthGuard(), UpdateUserController)
