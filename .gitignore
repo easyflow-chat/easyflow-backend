@@ -1,3 +1,8 @@
+# potential builds
 bin
+
+# IDEs
 .vscode
+
+# env
 .env

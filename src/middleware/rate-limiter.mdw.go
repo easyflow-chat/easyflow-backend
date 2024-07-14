@@ -1,9 +1,8 @@
 package middleware
 
 import (
-	"easyflow-backend/src/api"
-	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -13,33 +12,30 @@ import (
 var userLimiterMap = make(map[string]*rate.Limiter)
 var userLimiterMapMutex sync.Mutex
 
-func getUserLimiter(clientIPAddress string, seconds int, limit int) *rate.Limiter {
+// returns the rate limiter for the client IP address.
+func getUserLimiter(clientIPAddress string, limit float64, burst int) *rate.Limiter {
 	userLimiterMapMutex.Lock()
 	defer userLimiterMapMutex.Unlock()
 
 	limiter, ok := userLimiterMap[clientIPAddress]
 	if !ok {
-		limiter = rate.NewLimiter(rate.Limit(seconds), limit)
+		limiter = rate.NewLimiter(rate.Limit(limit), burst)
 		userLimiterMap[clientIPAddress] = limiter
 	}
 	return limiter
 }
 
-func RateLimiter(seconds int, limit int) gin.HandlerFunc {
+// RateLimiter is a middleware that limits the number of requests a client can make
+func RateLimiter(limit float64, burst int) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientIPAddress := c.ClientIP()
 
-		limiter := getUserLimiter(clientIPAddress, seconds, limit)
+		limiter := getUserLimiter(clientIPAddress, limit, burst)
 		if limiter.Allow() {
 			c.Next()
 		} else {
-			c.JSON(http.StatusTooManyRequests, api.ApiError{
-				Code:    http.StatusTooManyRequests,
-				Error:   "Rate limit exceeded",
-				Details: "Slow down buddy",
-			})
-			c.Header("Retry-After", "1")
-			c.Abort()
+			time.Sleep(time.Duration(1/limit) * time.Second)
+			c.Next()
 		}
 
 	}
