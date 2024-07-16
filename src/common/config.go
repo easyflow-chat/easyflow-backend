@@ -19,7 +19,10 @@ type Config struct {
 	Port        string
 	DebugMode   bool
 	//jwt
-	JwtSecret string
+	JwtSecret         string
+	BucketURL         string
+	BucketAccessKeyId string
+	BucketSecret      string
 }
 
 func getEnv(key, fallback string) string {
@@ -52,10 +55,13 @@ func LoadDefaultConfig() *Config {
 			Logger:                                   logger.Default.LogMode(logger.Info),
 			DisableForeignKeyConstraintWhenMigrating: true,
 		},
-		DatabaseURL: getEnv("DATABASE_URL", ""),
-		SaltRounds:  getEnvInt("SALT_OR_ROUNDS", 10),
-		Port:        getEnv("PORT", "8080"),
-		JwtSecret:   getEnv("JWT_SECRET", "public_secret"),
-		DebugMode:   getEnv("DEBUG_MODE", "false") == "true",
+		DatabaseURL:       getEnv("DATABASE_URL", ""),
+		SaltRounds:        getEnvInt("SALT_OR_ROUNDS", 10),
+		Port:              getEnv("PORT", "8080"),
+		JwtSecret:         getEnv("JWT_SECRET", "public_secret"),
+		DebugMode:         getEnv("DEBUG_MODE", "false") == "true",
+		BucketURL:         getEnv("BUCKET_URL", ""),
+		BucketAccessKeyId: getEnv("BUCKET_ACCESS_KEY_ID", ""),
+		BucketSecret:      getEnv("BUCKET_SECRET", ""),
 	}
 }

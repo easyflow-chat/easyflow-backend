@@ -67,6 +67,7 @@ func getLogger(c *gin.Context) (*Logger, error) {
 	return logger, nil
 }
 
+// TODO: remove loggerName not necessary
 func SetupEndpoint[T any](c *gin.Context, loggerName string) (*T, *Logger, *gorm.DB, *Config, []string) {
 	var errors []error
 	payload, err := getPayload[T](c)
