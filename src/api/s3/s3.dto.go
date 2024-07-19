@@ -1,7 +1,10 @@
 package s3
 
-import "mime/multipart"
+type BucketRequest struct {
+	Name string `json:"name" validate:"required"`
+}
 
-type UploadFileRequest struct {
-	Upload *multipart.File `form:"upload" validate:"required`
+type GetDownloadURLRequest struct {
+	BucketName string `json:"bucketName" validate:"required"`
+	ObjectKey  string `json:"objectKey" validate:"required"`
 }

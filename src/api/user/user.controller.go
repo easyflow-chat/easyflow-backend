@@ -23,7 +23,7 @@ func RegisterUserEndpoints(r *gin.RouterGroup) {
 }
 
 func CreateUserController(c *gin.Context) {
-	payload, logger, db, cfg, errors := common.SetupEndpoint[CreateUserRequest](c, "User")
+	payload, logger, db, cfg, errors := common.SetupEndpoint[CreateUserRequest](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -45,7 +45,7 @@ func CreateUserController(c *gin.Context) {
 }
 
 func GetUserController(c *gin.Context) {
-	_, logger, db, _, errors := common.SetupEndpoint[any](c, "User")
+	_, logger, db, _, errors := common.SetupEndpoint[any](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -87,7 +87,7 @@ func GetUserController(c *gin.Context) {
 }
 
 func GetProfilePictureController(c *gin.Context) {
-	_, logger, db, _, errors := common.SetupEndpoint[any](c, "User")
+	_, logger, db, _, errors := common.SetupEndpoint[any](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -132,7 +132,7 @@ func GetProfilePictureController(c *gin.Context) {
 }
 
 func UpdateUserController(c *gin.Context) {
-	payload, logger, db, _, errors := common.SetupEndpoint[UpdateUserRequest](c, "User")
+	payload, logger, db, _, errors := common.SetupEndpoint[UpdateUserRequest](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -175,7 +175,7 @@ func UpdateUserController(c *gin.Context) {
 }
 
 func DeleteUserController(c *gin.Context) {
-	_, logger, db, _, errors := common.SetupEndpoint[CreateUserRequest](c, "User")
+	_, logger, db, _, errors := common.SetupEndpoint[CreateUserRequest](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,

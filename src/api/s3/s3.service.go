@@ -1,22 +1,18 @@
 package s3
 
 import (
-	"bytes"
 	"context"
+	"easyflow-backend/src/api"
 	"easyflow-backend/src/common"
-	"io"
+	"easyflow-backend/src/enum"
+	"net/http"
+	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go/aws"
 )
-
-type BucketBasics struct {
-	S3Client *s3.Client
-}
-
-var bucketName = "easyflow"
 
 func connect(logger *common.Logger, cfg *common.Config) (*s3.Client, error) {
 	config, err := config.LoadDefaultConfig(context.Background(),
@@ -35,44 +31,59 @@ func connect(logger *common.Logger, cfg *common.Config) (*s3.Client, error) {
 	return client, nil
 }
 
-func GetObjects(logger *common.Logger, cfg *common.Config) {
+func GetObjects(logger *common.Logger, cfg *common.Config, bucketName string) (*s3.ListObjectsV2Output, *api.ApiError) {
 	client, err := connect(logger, cfg)
 	if err != nil {
-		return
+		logger.PrintfError("An error happened while connecting to the bucket %s", bucketName)
+		return nil, &api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
+		}
 	}
 
-	listedBuckets, err := client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+	listedObjects, err := client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: &bucketName,
 	})
 	if err != nil {
-		logger.PrintfError(err.Error())
-		return
-	}
-
-	logger.PrintfInfo("Objects in bucket %s:", bucketName)
-	for _, object := range listedBuckets.Contents {
-		logger.PrintfInfo(*object.Key)
-	}
-}
-
-func UploadFile(logger *common.Logger, cfg *common.Config, bucketName string, objectKey string, file *bytes.Buffer, fileName string) error {
-	client, err := connect(logger, cfg)
-	if err != nil {
-		return err
-	}
-	openedFile := io.Reader(file)
-	if err != nil {
-		logger.PrintfError(err.Error())
-	} else {
-		_, err = client.PutObject(context.TODO(), &s3.PutObjectInput{
-			Bucket: aws.String(bucketName),
-			Key:    aws.String(objectKey),
-			Body:   openedFile,
-		})
-		if err != nil {
-			logger.PrintfError("Couldn't upload file %v to %v:%v. Here's why: %v\n", fileName, bucketName, objectKey, err)
-			return err
+		logger.PrintfError("An error happened while listing objects in bucket %s", bucketName)
+		return nil, &api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
 		}
 	}
-	return err
+
+	return listedObjects, nil
+}
+
+func GetDownloadURL(logger *common.Logger, cfg *common.Config, bucketName string, objectKey string) (*string, *api.ApiError) {
+	client, err := connect(logger, cfg)
+	if err != nil {
+		logger.PrintfError("An error happened while connecting to the bucket %s", bucketName)
+		return nil, &api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
+		}
+	}
+
+	presigner := s3.NewPresignClient(client)
+
+	req, err := presigner.PresignGetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket: &bucketName,
+		Key:    &objectKey,
+	}, func(opts *s3.PresignOptions) {
+		opts.Expires = 10 * time.Second
+	})
+	if err != nil {
+		logger.PrintfError("Could not get object %s in bucket %s", objectKey, bucketName)
+		return nil, &api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
+		}
+	}
+
+	return &req.URL, nil
 }

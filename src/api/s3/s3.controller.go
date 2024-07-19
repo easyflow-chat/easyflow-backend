@@ -1,12 +1,10 @@
 package s3
 
 import (
-	"bytes"
 	"easyflow-backend/src/api"
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
 	"easyflow-backend/src/middleware"
-	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,12 +13,12 @@ import (
 func RegisterS3Endpoints(r *gin.RouterGroup) {
 	r.Use(middleware.LoggerMiddleware("S3"))
 	r.Use(middleware.RateLimiter(1, 4))
-	r.GET("/test", GetObjectsController)
-	r.POST("/test-upload", UploadFileController)
+	r.POST("/list-objects", GetObjectsController)
+	r.POST("/get-download-url", GetDownloadURLController)
 }
 
 func GetObjectsController(c *gin.Context) {
-	_, logger, _, cfg, errors := common.SetupEndpoint[any](c, "S3")
+	payload, logger, _, cfg, errors := common.SetupEndpoint[BucketRequest](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -30,13 +28,21 @@ func GetObjectsController(c *gin.Context) {
 		return
 	}
 
-	GetObjects(logger, cfg)
+	objects, err := GetObjects(logger, cfg, payload.Name)
+	if err != nil {
+		c.JSON(err.Code, err)
+		return
+	}
+
+	for _, object := range objects.Contents {
+		logger.PrintfInfo("Object in bucket: %s", *object.Key)
+	}
 
 	c.JSON(200, "Successfully fetched objects")
 }
 
-func UploadFileController(c *gin.Context) {
-	_, logger, _, cfg, errors := common.SetupEndpoint[any](c, "S3")
+func GetDownloadURLController(c *gin.Context) {
+	payload, logger, _, cfg, errors := common.SetupEndpoint[GetDownloadURLRequest](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -46,23 +52,11 @@ func UploadFileController(c *gin.Context) {
 		return
 	}
 
-	file, header, err := c.Request.FormFile("upload")
+	downloadLink, err := GetDownloadURL(logger, cfg, payload.BucketName, payload.ObjectKey)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    http.StatusInternalServerError,
-			Error:   enum.ApiError,
-			Details: err,
-		})
+		c.JSON(err.Code, err)
+		return
 	}
 
-	buf := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buf, file); err != nil {
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    http.StatusInternalServerError,
-			Error:   enum.ApiError,
-			Details: err,
-		})
-	}
-
-	UploadFile(logger, cfg, "easyflow", "test", buf, header.Filename)
+	c.JSON(http.StatusOK, downloadLink)
 }

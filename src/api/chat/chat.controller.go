@@ -21,7 +21,7 @@ func RegisterChatEndpoints(r *gin.RouterGroup) {
 }
 
 func CreateChatController(c *gin.Context) {
-	payload, logger, db, _, errors := common.SetupEndpoint[CreateChatRequest](c, "Chat")
+	payload, logger, db, _, errors := common.SetupEndpoint[CreateChatRequest](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -65,7 +65,7 @@ func CreateChatController(c *gin.Context) {
 }
 
 func GetChatPreviewsController(c *gin.Context) {
-	_, logger, db, _, errors := common.SetupEndpoint[any](c, "Chat")
+	_, logger, db, _, errors := common.SetupEndpoint[any](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -108,7 +108,7 @@ func GetChatPreviewsController(c *gin.Context) {
 }
 
 func GetChatByIdController(c *gin.Context) {
-	_, logger, db, _, errors := common.SetupEndpoint[any](c, "Chat")
+	_, logger, db, _, errors := common.SetupEndpoint[any](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
