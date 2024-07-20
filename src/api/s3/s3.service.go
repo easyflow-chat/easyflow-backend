@@ -31,7 +31,7 @@ func connect(logger *common.Logger, cfg *common.Config) (*s3.Client, error) {
 	return client, nil
 }
 
-func GetObjects(logger *common.Logger, cfg *common.Config, bucketName string) (*s3.ListObjectsV2Output, *api.ApiError) {
+func GetObjectsWithPrefix(logger *common.Logger, cfg *common.Config, bucketName string, prefix string) (*s3.ListObjectsV2Output, *api.ApiError) {
 	client, err := connect(logger, cfg)
 	if err != nil {
 		logger.PrintfError("An error happened while connecting to the bucket %s", bucketName)
@@ -44,6 +44,7 @@ func GetObjects(logger *common.Logger, cfg *common.Config, bucketName string) (*
 
 	listedObjects, err := client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
 		Bucket: &bucketName,
+		Prefix: &prefix,
 	})
 	if err != nil {
 		logger.PrintfError("An error happened while listing objects in bucket %s", bucketName)
