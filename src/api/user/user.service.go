@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"net/http"
 
 	"easyflow-backend/src/api"
@@ -85,28 +86,25 @@ func GetUserById(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger
 	}, nil
 }
 
-func GetUserByEmail(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) (*GetUserResponse, *api.ApiError) {
-	logger.Printf("Attempting to get user with email: %s", jwtPayload.Email)
+func GetUserByEmail(db *gorm.DB, email string, logger *common.Logger) (bool, *api.ApiError) {
+	logger.Printf("Attempting to find user with email: %s", email)
 	var user database.User
-	if err := db.Where("email = ?", jwtPayload.Email).First(&user).Error; err != nil {
-		logger.PrintfError("Error getting user: %s", err)
-		return nil, &api.ApiError{
+	err := db.Where("email = ?", email).First(&user).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		logger.PrintfInfo("No user with email: %s found", err)
+		return false, nil
+	}
+
+	if err != nil {
+		logger.PrintfInfo("An error occured while trying to find user: %s ", err)
+		return false, &api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
 		}
 	}
 
-	return &GetUserResponse{
-		Id:         user.Id,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
-		Email:      user.Email,
-		Name:       user.Name,
-		Bio:        user.Bio,
-		Iv:         user.Iv,
-		PublicKey:  user.PublicKey,
-		PrivateKey: user.PrivateKey,
-	}, nil
+	return true, nil
 }
 
 func GetProfilePicture(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) (*string, *api.ApiError) {

@@ -18,7 +18,7 @@ func RegisterAuthEndpoints(r *gin.RouterGroup) {
 }
 
 func LoginController(c *gin.Context) {
-	payload, logger, db, cfg, errors := common.SetupEndpoint[LoginRequest](c, "Auth")
+	payload, logger, db, cfg, errors := common.SetupEndpoint[LoginRequest](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -32,7 +32,7 @@ func LoginController(c *gin.Context) {
 
 	jwtPair, err := LoginService(db, cfg, payload, logger)
 	if err != nil {
-		logger.PrintfError("Error logging in: %s", err.Details)
+		logger.PrintfError("Error loging in: %s", err.Details)
 		c.JSON(err.Code, err)
 		return
 	}
@@ -45,7 +45,7 @@ func LoginController(c *gin.Context) {
 }
 
 func RefreshController(c *gin.Context) {
-	_, logger, db, cfg, errors := common.SetupEndpoint[any](c, "Auth")
+	_, logger, db, cfg, errors := common.SetupEndpoint[any](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,

@@ -8,18 +8,21 @@ import (
 	"gorm.io/gorm"
 )
 
+type AnyStruct struct{}
+
 func getPayload[T any](c *gin.Context) (*T, error) {
 	var payload T
-	method := c.Request.Method
-	if method != "GET" && method != "DELETE" {
-		if err := c.ShouldBindJSON(&payload); err != nil {
-			return nil, err
-		}
 
-		if err := api.Validate.Struct(payload); err != nil {
-			fmt.Println(err)
-			return nil, err
-		}
+	if c.Request.ContentLength == 0 {
+		return nil, nil
+	}
+
+	if err := c.ShouldBind(&payload); err != nil {
+		return nil, err
+	}
+
+	if err := api.Validate.Struct(payload); err != nil {
+		return nil, err
 	}
 
 	return &payload, nil
@@ -67,7 +70,7 @@ func getLogger(c *gin.Context) (*Logger, error) {
 	return logger, nil
 }
 
-func SetupEndpoint[T any](c *gin.Context, loggerName string) (*T, *Logger, *gorm.DB, *Config, []string) {
+func SetupEndpoint[T any](c *gin.Context) (*T, *Logger, *gorm.DB, *Config, []string) {
 	var errors []error
 	payload, err := getPayload[T](c)
 	if err != nil {
