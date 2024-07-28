@@ -32,7 +32,7 @@ func LoginController(c *gin.Context) {
 
 	jwtPair, err := LoginService(db, cfg, payload, logger)
 	if err != nil {
-		logger.PrintfError("Error loging in: %s", err.Details)
+		logger.PrintfError("Error logging in: %s", err.Details)
 		c.JSON(err.Code, err)
 		return
 	}
