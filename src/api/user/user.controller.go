@@ -17,6 +17,7 @@ func RegisterUserEndpoints(r *gin.RouterGroup) {
 	r.Use(middleware.RateLimiter(1, 4))
 	r.POST("/signup", middleware.RateLimiter(1, 0), CreateUserController)
 	r.GET("/", auth.AuthGuard(), GetUserController)
+	r.GET("/exists/:email", UserExists)
 	r.GET("/profile-picture", auth.AuthGuard(), GetProfilePictureController)
 	r.PUT("/", auth.AuthGuard(), UpdateUserController)
 	r.DELETE("/", auth.AuthGuard(), DeleteUserController)
@@ -129,6 +130,30 @@ func GetProfilePictureController(c *gin.Context) {
 
 	logger.Println("Responding with 200 status code for successful profile picture retrieval")
 	c.JSON(200, pic)
+}
+
+func UserExists(c *gin.Context) {
+	_, logger, db, _, errors := common.SetupEndpoint[any](c)
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
+		return
+	}
+
+	email := c.Param("email")
+
+	userInDb, err := GetUserByEmail(db, email, logger)
+
+	if err != nil {
+		logger.PrintfError("Error getting user: %s", err.Error)
+		c.JSON(err.Code, err)
+		return
+	}
+
+	c.JSON(200, userInDb)
 }
 
 func UpdateUserController(c *gin.Context) {

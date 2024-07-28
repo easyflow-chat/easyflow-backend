@@ -44,8 +44,9 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err != nil {
 		logger.PrintfWarning("User with email: %s not found", payload.Email)
 		return JWTPair{}, &api.ApiError{
-			Code:  http.StatusUnauthorized,
-			Error: enum.WrongCredentials,
+			Code:    http.StatusUnauthorized,
+			Error:   enum.WrongCredentials,
+			Details: err,
 		}
 	}
 
@@ -53,8 +54,9 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password)); err != nil {
 		logger.PrintfWarning("Wrong password for user with email: %s", payload.Email)
 		return JWTPair{}, &api.ApiError{
-			Code:  http.StatusUnauthorized,
-			Error: enum.WrongCredentials,
+			Code:    http.StatusUnauthorized,
+			Error:   enum.WrongCredentials,
+			Details: err,
 		}
 	}
 
@@ -90,8 +92,9 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	if err != nil {
 		logger.PrintfError("Error generating jwt: %s", err)
 		return JWTPair{}, &api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
 		}
 	}
 
@@ -100,8 +103,9 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	if err != nil {
 		logger.PrintfError("Error generating jwt: %s", err)
 		return JWTPair{}, &api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
 		}
 	}
 
@@ -118,8 +122,9 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 		if err := db.Create(&entry).Error; err != nil {
 			logger.PrintfError("Error creating user key: %s", err)
 			return JWTPair{}, &api.ApiError{
-				Code:  http.StatusInternalServerError,
-				Error: enum.ApiError,
+				Code:    http.StatusInternalServerError,
+				Error:   enum.ApiError,
+				Details: err,
 			}
 		}
 	} else {
@@ -128,8 +133,9 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 		if err := db.Save(&entry).Error; err != nil {
 			logger.PrintfError("Error updating user key: %s", err)
 			return JWTPair{}, &api.ApiError{
-				Code:  http.StatusInternalServerError,
-				Error: enum.ApiError,
+				Code:    http.StatusInternalServerError,
+				Error:   enum.ApiError,
+				Details: err,
 			}
 		}
 	}
@@ -146,8 +152,9 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 	if err := db.Where("id = ?", payload.UserId).First(&user).Error; err != nil {
 		logger.PrintfInfo("User with id: %s not found", payload.UserId)
 		return JWTPair{}, &api.ApiError{
-			Code:  http.StatusUnauthorized,
-			Error: enum.Unauthorized,
+			Code:    http.StatusUnauthorized,
+			Error:   enum.Unauthorized,
+			Details: err,
 		}
 	}
 
@@ -182,8 +189,9 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 	if err != nil {
 		logger.PrintfError("Error generating jwt: %s", err)
 		return JWTPair{}, &api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
 		}
 	}
 
