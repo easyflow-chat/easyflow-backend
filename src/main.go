@@ -3,7 +3,6 @@ package main
 import (
 	"easyflow-backend/src/api/auth"
 	"easyflow-backend/src/api/chat"
-	"easyflow-backend/src/api/s3"
 	"easyflow-backend/src/api/user"
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/database"
@@ -59,12 +58,6 @@ func main() {
 	{
 		logger.Printf("Registering chat endpoints")
 		chat.RegisterChatEndpoints(chatEndpoints)
-	}
-
-	s3Endpoints := router.Group("/s3")
-	{
-		logger.Printf("Registering s3 endpoints")
-		s3.RegisterS3Endpoints(s3Endpoints)
 	}
 
 	logger.Printf("Starting server on port %s", cfg.Port)

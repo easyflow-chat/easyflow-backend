@@ -14,6 +14,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 )
 
+/*
+Private function to connect to the S3 bucket
+*/
 func connect(logger *common.Logger, cfg *common.Config) (*s3.Client, error) {
 	config, err := config.LoadDefaultConfig(context.Background(),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.BucketAccessKeyId, cfg.BucketSecret, "")),
@@ -31,6 +34,43 @@ func connect(logger *common.Logger, cfg *common.Config) (*s3.Client, error) {
 	return client, nil
 }
 
+/*
+Object upload url generation
+*/
+func GenerateUploadURL(logger *common.Logger, cfg *common.Config, bucketName string, objectKey string, expiration int) (*string, *api.ApiError) {
+	client, err := connect(logger, cfg)
+	if err != nil {
+		logger.PrintfError("An error happened while connecting to the bucket %s", bucketName)
+		return nil, &api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
+		}
+	}
+
+	presigner := s3.NewPresignClient(client)
+
+	req, err := presigner.PresignPutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: &bucketName,
+		Key:    &objectKey,
+	}, func(opts *s3.PresignOptions) {
+		opts.Expires = time.Duration(expiration) * time.Second
+	})
+	if err != nil {
+		logger.PrintfError("Could not get object %s in bucket %s", objectKey, bucketName)
+		return nil, &api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
+		}
+	}
+
+	return &req.URL, nil
+}
+
+/*
+GetObjectsWithPrefix returns a list of objects with a given prefix in the bucket
+*/
 func GetObjectsWithPrefix(logger *common.Logger, cfg *common.Config, bucketName string, prefix string) (*s3.ListObjectsV2Output, *api.ApiError) {
 	client, err := connect(logger, cfg)
 	if err != nil {
@@ -58,7 +98,10 @@ func GetObjectsWithPrefix(logger *common.Logger, cfg *common.Config, bucketName 
 	return listedObjects, nil
 }
 
-func GetDownloadURL(logger *common.Logger, cfg *common.Config, bucketName string, objectKey string) (*string, *api.ApiError) {
+/*
+GenerateDownloadURL returns a presigned URL for an object in the bucket
+*/
+func GenerateDownloadURL(logger *common.Logger, cfg *common.Config, bucketName string, objectKey string, expiration int) (*string, *api.ApiError) {
 	client, err := connect(logger, cfg)
 	if err != nil {
 		logger.PrintfError("An error happened while connecting to the bucket %s", bucketName)
@@ -75,7 +118,7 @@ func GetDownloadURL(logger *common.Logger, cfg *common.Config, bucketName string
 		Bucket: &bucketName,
 		Key:    &objectKey,
 	}, func(opts *s3.PresignOptions) {
-		opts.Expires = 10 * time.Second
+		opts.Expires = time.Duration(expiration) * time.Second
 	})
 	if err != nil {
 		logger.PrintfError("Could not get object %s in bucket %s", objectKey, bucketName)
