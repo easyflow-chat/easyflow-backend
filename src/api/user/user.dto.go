@@ -30,6 +30,10 @@ type GetUserResponse struct {
 	PrivateKey string    `json:"privateKey"`
 }
 
+type CheckIfuserExistsRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
 type UpdateUserRequest struct {
 	Name           *string `json:"name" validate:"omitempty,lte=50"`
 	Bio            *string `json:"bio" validate:"omitempty,lte=1000"`

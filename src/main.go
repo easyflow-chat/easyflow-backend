@@ -37,7 +37,6 @@ func main() {
 	router.Use(cors.Default())
 	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))
 	router.Use(middleware.ConfigMiddleware(cfg))
-	//TODO: Do we need this?
 	logger := common.NewLogger(os.Stdout, "Main")
 	//router.Use(GinLoggerMiddleware(logger))
 	router.Use(gin.Recovery())
