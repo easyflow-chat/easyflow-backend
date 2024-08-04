@@ -112,6 +112,19 @@ func GenerateDownloadURL(logger *common.Logger, cfg *common.Config, bucketName s
 		}
 	}
 
+	exists, err := client.HeadObject(context.TODO(), &s3.HeadObjectInput{
+		Bucket: &bucketName,
+		Key:    &objectKey,
+	})
+	if err != nil || exists == nil {
+		logger.PrintfError("Could not get object %s in bucket %s", objectKey, bucketName)
+		return nil, &api.ApiError{
+			Code:    http.StatusNotFound,
+			Error:   enum.NotFound,
+			Details: err,
+		}
+	}
+
 	presigner := s3.NewPresignClient(client)
 
 	req, err := presigner.PresignGetObject(context.TODO(), &s3.GetObjectInput{

@@ -11,6 +11,8 @@ import (
 )
 
 type Config struct {
+	// stage
+	Stage string
 	//gorm
 	GormConfig gorm.Config
 	//env
@@ -19,7 +21,9 @@ type Config struct {
 	Port        string
 	DebugMode   bool
 	//jwt
-	JwtSecret string
+	JwtSecret             string
+	JwtExpirationTime     int
+	RefreshExpirationTime int
 	// s3
 	BucketURL                string
 	BucketAccessKeyId        string
@@ -57,10 +61,13 @@ func LoadDefaultConfig() *Config {
 			Logger:                                   logger.Default.LogMode(logger.Info),
 			DisableForeignKeyConstraintWhenMigrating: true,
 		},
+		Stage:                    getEnv("STAGE", "development"),
 		DatabaseURL:              getEnv("DATABASE_URL", ""),
 		SaltRounds:               getEnvInt("SALT_OR_ROUNDS", 10),
 		Port:                     getEnv("PORT", "8080"),
 		JwtSecret:                getEnv("JWT_SECRET", "public_secret"),
+		JwtExpirationTime:        getEnvInt("JWT_EXPIRATION_TIME", 60*10),        // 10 minutes
+		RefreshExpirationTime:    getEnvInt("REFRESH_EXPIRATION_TIME", 60*60*24), // 1 week
 		DebugMode:                getEnv("DEBUG_MODE", "false") == "true",
 		BucketURL:                getEnv("BUCKET_URL", ""),
 		BucketAccessKeyId:        getEnv("BUCKET_ACCESS_KEY_ID", ""),
