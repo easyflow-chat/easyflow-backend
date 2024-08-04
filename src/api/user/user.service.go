@@ -6,6 +6,7 @@ import (
 
 	"easyflow-backend/src/api"
 	"easyflow-backend/src/api/auth"
+	"easyflow-backend/src/api/s3"
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/database"
 	"easyflow-backend/src/enum"
@@ -15,10 +16,10 @@ import (
 )
 
 func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, logger *common.Logger) (*CreateUserResponse, *api.ApiError) {
-	logger.Printf("Attempting to create user with email: %s", payload.Email)
+	logger.PrintfInfo("Attempting to create user with email: %s", payload.Email)
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err == nil {
-		logger.Printf("User with email: %s already exists", payload.Email)
+		logger.PrintfError("User with email: %s already exists", payload.Email)
 		return nil, &api.ApiError{
 			Code:  http.StatusConflict,
 			Error: enum.AlreadyExists,
@@ -63,7 +64,7 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, log
 }
 
 func GetUserById(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) (*GetUserResponse, *api.ApiError) {
-	logger.Printf("Attempting to get user with email: %s", jwtPayload.Email)
+	logger.PrintfInfo("Attempting to get user with email: %s", jwtPayload.Email)
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -87,7 +88,7 @@ func GetUserById(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger
 }
 
 func GetUserByEmail(db *gorm.DB, email string, logger *common.Logger) (bool, *api.ApiError) {
-	logger.Printf("Attempting to find user with email: %s", email)
+	logger.PrintfInfo("Attempting to find user with email: %s", email)
 	var user database.User
 	err := db.Where("email = ?", email).First(&user).Error
 
@@ -107,8 +108,8 @@ func GetUserByEmail(db *gorm.DB, email string, logger *common.Logger) (bool, *ap
 	return true, nil
 }
 
-func GetProfilePicture(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) (*string, *api.ApiError) {
-	logger.Printf("Attempting to get profile picture for user with email: %s", jwtPayload.Email)
+func GenerateGetProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
+	logger.PrintfInfo("Attempting to get profile picture for user with email: %s", jwtPayload.Email)
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -118,11 +119,40 @@ func GetProfilePicture(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.
 		}
 	}
 
-	return user.ProfilePicture, nil
+	imageURL, err := s3.GenerateDownloadURL(logger, cfg, cfg.ProfilePictureBucketName, user.Id, 60*60*24*7) // 1 week expiration time
+	if err != nil {
+		return nil, err
+	}
+
+	return imageURL, nil
+}
+
+func GenerateUploadProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
+	logger.PrintfInfo("Attempting to create upload url for profile picture for user with email: %s", jwtPayload.Email)
+	var user database.User
+	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
+		logger.PrintfError("Error getting user: %s", err)
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.NotFound,
+		}
+	}
+
+	uploadURL, err := s3.GenerateUploadURL(logger, cfg, cfg.ProfilePictureBucketName, user.Id, 60*60)
+	if err != nil {
+		logger.PrintfError("Error uploading profile picture: %s", err.Error)
+		return nil, &api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
+		}
+	}
+
+	return uploadURL, nil
 }
 
 func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTPayload, payload *UpdateUserRequest, logger *common.Logger) (*UpdateUserResponse, *api.ApiError) {
-	logger.Printf("Attempting to update user with email: %s", jwtPayload.UserId)
+	logger.PrintfInfo("Attempting to update user with email: %s", jwtPayload.UserId)
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -138,31 +168,28 @@ func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTPayload, payload *UpdateUserReq
 	if payload.Bio != nil {
 		user.Bio = payload.Bio
 	}
-	if payload.ProfilePicture != nil {
-		user.ProfilePicture = payload.ProfilePicture
-	}
 
-	if err := db.Save(&user).Error; err != nil {
+	if err := db.Update(user.Id, &user).Error; err != nil {
 		logger.PrintfError("Error updating user: %s", err)
 		return nil, &api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
 		}
 	}
 
 	return &UpdateUserResponse{
-		Id:             user.Id,
-		CreatedAt:      user.CreatedAt,
-		UpdatedAt:      user.UpdatedAt,
-		Email:          user.Email,
-		Name:           user.Name,
-		Bio:            user.Bio,
-		ProfilePicture: user.ProfilePicture,
+		Id:        user.Id,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		Email:     user.Email,
+		Name:      user.Name,
+		Bio:       user.Bio,
 	}, nil
 }
 
 func DeleteUser(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) *api.ApiError {
-	logger.Printf("Attempting to delete user with email: %s", jwtPayload.UserId)
+	logger.PrintfInfo("Attempting to delete user with email: %s", jwtPayload.UserId)
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)

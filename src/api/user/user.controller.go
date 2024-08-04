@@ -19,6 +19,7 @@ func RegisterUserEndpoints(r *gin.RouterGroup) {
 	r.GET("/", auth.AuthGuard(), GetUserController)
 	r.GET("/exists/:email", UserExists)
 	r.GET("/profile-picture", auth.AuthGuard(), GetProfilePictureController)
+	r.GET("/upload-profile-picture", auth.AuthGuard(), GenerateUploadProfilePictureURLController)
 	r.PUT("/", auth.AuthGuard(), UpdateUserController)
 	r.DELETE("/", auth.AuthGuard(), DeleteUserController)
 }
@@ -34,14 +35,11 @@ func CreateUserController(c *gin.Context) {
 		return
 	}
 
-	logger.Printf("Successfully validated request for creating user")
-
 	user, err := CreateUser(db, payload, cfg, logger)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
 	}
-	logger.Println("Responding with 200 status code for successful user creation")
 	c.JSON(200, user)
 }
 
@@ -56,7 +54,7 @@ func GetUserController(c *gin.Context) {
 		return
 	}
 
-	val, ok := c.Get("user")
+	user, ok := c.Get("user")
 	if !ok {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:  http.StatusInternalServerError,
@@ -65,30 +63,18 @@ func GetUserController(c *gin.Context) {
 		return
 	}
 
-	user, ok := val.(*auth.JWTPayload)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-		return
-	}
-
-	logger.Printf("Successfully validated request for getting user")
-
-	userFromDb, err := GetUserById(db, user, logger)
+	userFromDb, err := GetUserById(db, user.(*auth.JWTPayload), logger)
 
 	if err != nil {
 		logger.PrintfError("Error getting user: %s", err.Error)
 		c.JSON(err.Code, err)
 		return
 	}
-	logger.Println("Responding with 200 status code for successful user retrieval")
 	c.JSON(200, userFromDb)
 }
 
 func GetProfilePictureController(c *gin.Context) {
-	_, logger, db, _, errors := common.SetupEndpoint[any](c)
+	_, logger, db, cfg, errors := common.SetupEndpoint[any](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -98,7 +84,7 @@ func GetProfilePictureController(c *gin.Context) {
 		return
 	}
 
-	val, ok := c.Get("user")
+	user, ok := c.Get("user")
 	if !ok {
 		fmt.Println("User data not found in context")
 		c.JSON(http.StatusInternalServerError, api.ApiError{
@@ -108,28 +94,14 @@ func GetProfilePictureController(c *gin.Context) {
 		return
 	}
 
-	user, ok := val.(*auth.JWTPayload)
-	if !ok {
-		fmt.Println("Type assertion to JWTPayload failed")
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-		return
-	}
-
-	logger.Printf("Successfully validated request for getting profile picture")
-
-	pic, err := GetProfilePicture(db, user, logger)
+	imageURL, err := GenerateGetProfilePictureURL(db, user.(*auth.JWTPayload), logger, cfg)
 
 	if err != nil {
-		logger.PrintfError("Error getting profile picture: %s", err.Error)
 		c.JSON(err.Code, err)
 		return
 	}
 
-	logger.Println("Responding with 200 status code for successful profile picture retrieval")
-	c.JSON(200, pic)
+	c.JSON(200, imageURL)
 }
 
 func UserExists(c *gin.Context) {
@@ -144,6 +116,13 @@ func UserExists(c *gin.Context) {
 	}
 
 	email := c.Param("email")
+	if email == ":email" {
+		c.JSON(http.StatusBadRequest, api.ApiError{
+			Code:  http.StatusBadRequest,
+			Error: enum.MalformedRequest,
+		})
+		return
+	}
 
 	userInDb, err := GetUserByEmail(db, email, logger)
 
@@ -167,8 +146,7 @@ func UpdateUserController(c *gin.Context) {
 		return
 	}
 
-	val, ok := c.Get("user")
-
+	user, ok := c.Get("user")
 	if !ok {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:  http.StatusInternalServerError,
@@ -176,18 +154,7 @@ func UpdateUserController(c *gin.Context) {
 		})
 	}
 
-	user, ok := val.(*auth.JWTPayload)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-		return
-	}
-
-	logger.Printf("Successfully validated request for updating user")
-
-	updatedUser, err := UpdateUser(db, user, payload, logger)
+	updatedUser, err := UpdateUser(db, user.(*auth.JWTPayload), payload, logger)
 
 	if err != nil {
 		logger.PrintfError("Error updating user: %s", err.Error)
@@ -195,8 +162,36 @@ func UpdateUserController(c *gin.Context) {
 		return
 	}
 
-	logger.Println("Responding with 200 status code for successful user update")
 	c.JSON(200, updatedUser)
+}
+
+func GenerateUploadProfilePictureURLController(c *gin.Context) {
+	_, logger, db, cfg, errors := common.SetupEndpoint[any](c)
+	if errors != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
+		return
+	}
+
+	user, ok := c.Get("user")
+	if !ok {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		})
+	}
+
+	uploadURL, err := GenerateUploadProfilePictureURL(db, user.(*auth.JWTPayload), logger, cfg)
+
+	if err != nil {
+		c.JSON(err.Code, err)
+		return
+	}
+
+	c.JSON(200, uploadURL)
 }
 
 func DeleteUserController(c *gin.Context) {
@@ -209,16 +204,8 @@ func DeleteUserController(c *gin.Context) {
 		})
 		return
 	}
-	val, ok := c.Get("user")
 
-	if !ok {
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		})
-	}
-
-	user, ok := val.(*auth.JWTPayload)
+	user, ok := c.Get("user")
 	if !ok {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:  http.StatusInternalServerError,
@@ -227,9 +214,7 @@ func DeleteUserController(c *gin.Context) {
 		return
 	}
 
-	logger.Printf("Successfully validated request for deleting user")
-
-	err := DeleteUser(db, user, logger)
+	err := DeleteUser(db, user.(*auth.JWTPayload), logger)
 
 	if err != nil {
 		logger.PrintfError("Error deleting user: %s", err.Error)
@@ -237,7 +222,6 @@ func DeleteUserController(c *gin.Context) {
 		return
 	}
 
-	logger.Println("Responding with 200 status code for successful user deletion")
 	c.JSON(200, gin.H{
 		"message": "User deleted",
 	})

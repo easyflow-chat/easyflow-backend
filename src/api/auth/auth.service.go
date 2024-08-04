@@ -14,8 +14,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var TOK_TTL = 60 * 60 * 24
-
 func generateJwt(cfg *common.Config, payload *JWTPayload) (string, error) {
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 	token, err := claims.SignedString([]byte(cfg.JwtSecret))
@@ -61,7 +59,8 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	}
 
 	unique := uuid.New()
-	expires := time.Now().Add(time.Duration(TOK_TTL) * time.Second)
+	expires := time.Now().Add(time.Duration(cfg.JwtExpirationTime) * time.Second)
+	refreshExpires := time.Now().Add(time.Duration(cfg.RefreshExpirationTime) * time.Second)
 
 	accessTokenPayload := JWTPayload{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -77,7 +76,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 
 	refreshTokenPayload := JWTPayload{
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expires),
+			ExpiresAt: jwt.NewNumericDate(refreshExpires),
 			Issuer:    "easyflow",
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
@@ -111,32 +110,18 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 
 	//write refresh token to db
 	entry := database.UserKeys{
-		UserId:       user.Id,
-		ExpiredAt:    expires,
+		Id:           unique.String(),
+		ExpiredAt:    refreshExpires,
 		RefreshToken: refreshToken,
+		UserId:       user.Id,
 	}
 
-	//check if user already has a refresh token
-	if err := db.Where("user_id = ?", user.Id).First(&entry).Error; err != nil {
-		logger.PrintfInfo("User with email: %s does not have a refresh token", payload.Email)
-		if err := db.Create(&entry).Error; err != nil {
-			logger.PrintfError("Error creating user key: %s", err)
-			return JWTPair{}, &api.ApiError{
-				Code:    http.StatusInternalServerError,
-				Error:   enum.ApiError,
-				Details: err,
-			}
-		}
-	} else {
-		entry.RefreshToken = refreshToken
-		entry.ExpiredAt = expires
-		if err := db.Save(&entry).Error; err != nil {
-			logger.PrintfError("Error updating user key: %s", err)
-			return JWTPair{}, &api.ApiError{
-				Code:    http.StatusInternalServerError,
-				Error:   enum.ApiError,
-				Details: err,
-			}
+	if err := db.Create(&entry).Error; err != nil {
+		logger.PrintfError("Error updating user key: %s", err)
+		return JWTPair{}, &api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
 		}
 	}
 
@@ -146,12 +131,12 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	}, nil
 }
 
-func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger *common.Logger) (JWTPair, *api.ApiError) {
+func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger *common.Logger) (*JWTPair, *api.ApiError) {
 	//get user from db
 	var user database.User
-	if err := db.Where("id = ?", payload.UserId).First(&user).Error; err != nil {
-		logger.PrintfInfo("User with id: %s not found", payload.UserId)
-		return JWTPair{}, &api.ApiError{
+	if err := db.First(&user, "id = ?", payload.UserId).Error; err != nil {
+		logger.PrintfError("Could not get user with id: %s", payload.UserId)
+		return nil, &api.ApiError{
 			Code:    http.StatusUnauthorized,
 			Error:   enum.Unauthorized,
 			Details: err,
@@ -159,7 +144,7 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 	}
 
 	unique := uuid.New()
-	expires := time.Now().Add(time.Duration(TOK_TTL) * time.Second)
+	expires := time.Now().Add(time.Duration(cfg.JwtExpirationTime) * time.Second)
 
 	accessTokenPayload := JWTPayload{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -173,30 +158,31 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 		IsAccess:    true,
 	}
 
-	/* _ := JWTPayload{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expires),
-			Issuer:    "easyflow",
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-		UserId:      user.Id,
-		Email:       user.Email,
-		RefreshRand: &unique,
-		IsAccess:    false,
-	} */
-
 	accessToken, err := generateJwt(cfg, &accessTokenPayload)
 	if err != nil {
 		logger.PrintfError("Error generating jwt: %s", err)
-		return JWTPair{}, &api.ApiError{
+		return nil, &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
 			Details: err,
 		}
 	}
 
-	return JWTPair{
+	return &JWTPair{
 		AccessToken:  accessToken,
 		RefreshToken: "",
 	}, nil
+}
+
+func LogoutService(db *gorm.DB, payload *JWTPayload, logger *common.Logger) *api.ApiError {
+	if err := db.Delete(&database.UserKeys{}, payload.RefreshRand).Error; err != nil {
+		logger.PrintfError("Could not delete Refresh Token with id: %s", payload.RefreshRand)
+		return &api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
+		}
+	}
+
+	return nil
 }
