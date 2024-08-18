@@ -29,6 +29,7 @@ type Config struct {
 	BucketAccessKeyId        string
 	BucketSecret             string
 	ProfilePictureBucketName string
+	FrontendURL              string
 }
 
 func getEnv(key, fallback string) string {
@@ -58,7 +59,7 @@ func LoadDefaultConfig() *Config {
 
 	return &Config{
 		GormConfig: gorm.Config{
-			Logger:                                   logger.Default.LogMode(logger.Info),
+			Logger:                                   logger.Default.LogMode(logger.Silent),
 			DisableForeignKeyConstraintWhenMigrating: true,
 		},
 		Stage:                    getEnv("STAGE", "development"),
@@ -66,12 +67,13 @@ func LoadDefaultConfig() *Config {
 		SaltRounds:               getEnvInt("SALT_OR_ROUNDS", 10),
 		Port:                     getEnv("PORT", "8080"),
 		JwtSecret:                getEnv("JWT_SECRET", "public_secret"),
-		JwtExpirationTime:        getEnvInt("JWT_EXPIRATION_TIME", 60*10),        // 10 minutes
-		RefreshExpirationTime:    getEnvInt("REFRESH_EXPIRATION_TIME", 60*60*24), // 1 week
+		JwtExpirationTime:        getEnvInt("JWT_EXPIRATION_TIME", 60*10),          // 10 minutes
+		RefreshExpirationTime:    getEnvInt("REFRESH_EXPIRATION_TIME", 60*60*24*7), // 1 week
 		DebugMode:                getEnv("DEBUG_MODE", "false") == "true",
 		BucketURL:                getEnv("BUCKET_URL", ""),
 		BucketAccessKeyId:        getEnv("BUCKET_ACCESS_KEY_ID", ""),
 		BucketSecret:             getEnv("BUCKET_SECRET", ""),
 		ProfilePictureBucketName: getEnv("PROFILE_PICTURE_BUCKET_NAME", ""),
+		FrontendURL:              getEnv("FRONTEND_URL", ""),
 	}
 }

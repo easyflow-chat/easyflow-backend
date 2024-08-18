@@ -17,13 +17,12 @@ import (
 /*
 Private function to connect to the S3 bucket
 */
-func connect(logger *common.Logger, cfg *common.Config) (*s3.Client, error) {
+func connect(cfg *common.Config) (*s3.Client, error) {
 	config, err := config.LoadDefaultConfig(context.Background(),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.BucketAccessKeyId, cfg.BucketSecret, "")),
 		config.WithRegion("auto"),
 	)
 	if err != nil {
-		logger.PrintfError(err.Error())
 		return nil, err
 	}
 
@@ -37,8 +36,9 @@ func connect(logger *common.Logger, cfg *common.Config) (*s3.Client, error) {
 /*
 Object upload url generation
 */
+// TODO: Add filetype restriction to the upload url
 func GenerateUploadURL(logger *common.Logger, cfg *common.Config, bucketName string, objectKey string, expiration int) (*string, *api.ApiError) {
-	client, err := connect(logger, cfg)
+	client, err := connect(cfg)
 	if err != nil {
 		logger.PrintfError("An error happened while connecting to the bucket %s", bucketName)
 		return nil, &api.ApiError{
@@ -72,7 +72,7 @@ func GenerateUploadURL(logger *common.Logger, cfg *common.Config, bucketName str
 GetObjectsWithPrefix returns a list of objects with a given prefix in the bucket
 */
 func GetObjectsWithPrefix(logger *common.Logger, cfg *common.Config, bucketName string, prefix string) (*s3.ListObjectsV2Output, *api.ApiError) {
-	client, err := connect(logger, cfg)
+	client, err := connect(cfg)
 	if err != nil {
 		logger.PrintfError("An error happened while connecting to the bucket %s", bucketName)
 		return nil, &api.ApiError{
@@ -102,7 +102,7 @@ func GetObjectsWithPrefix(logger *common.Logger, cfg *common.Config, bucketName 
 GenerateDownloadURL returns a presigned URL for an object in the bucket
 */
 func GenerateDownloadURL(logger *common.Logger, cfg *common.Config, bucketName string, objectKey string, expiration int) (*string, *api.ApiError) {
-	client, err := connect(logger, cfg)
+	client, err := connect(cfg)
 	if err != nil {
 		logger.PrintfError("An error happened while connecting to the bucket %s", bucketName)
 		return nil, &api.ApiError{
@@ -117,9 +117,9 @@ func GenerateDownloadURL(logger *common.Logger, cfg *common.Config, bucketName s
 		Key:    &objectKey,
 	})
 	if err != nil || exists == nil {
-		logger.PrintfError("Could not get object %s in bucket %s", objectKey, bucketName)
+		logger.PrintfWarning("Could not get object %s in bucket %s", objectKey, bucketName)
 		return nil, &api.ApiError{
-			Code:    http.StatusNotFound,
+			Code:    http.StatusNoContent,
 			Error:   enum.NotFound,
 			Details: err,
 		}
@@ -134,7 +134,7 @@ func GenerateDownloadURL(logger *common.Logger, cfg *common.Config, bucketName s
 		opts.Expires = time.Duration(expiration) * time.Second
 	})
 	if err != nil {
-		logger.PrintfError("Could not get object %s in bucket %s", objectKey, bucketName)
+		logger.PrintfError("Could not presign url to get object %s in bucket %s", objectKey, bucketName)
 		return nil, &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,

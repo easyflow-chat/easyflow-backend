@@ -16,9 +16,12 @@ import (
 
 func AuthGuard() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		logger := common.NewLogger(os.Stdout, "AuthGuard", c)
+
 		// Get access_token from cookies
 		token, err := c.Cookie("access_token")
 		if err != nil {
+			logger.PrintfWarning("No access token found")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.InvalidCookie,
@@ -37,8 +40,6 @@ func AuthGuard() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
-		logger := common.NewLogger(os.Stdout, "AuthGuard")
 
 		// Validate token
 		payload, err := ValidateToken(cfg.(*common.Config), token)
@@ -89,9 +90,11 @@ func AuthGuard() gin.HandlerFunc {
 
 func RefreshAuthGuard() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		logger := common.NewLogger(os.Stdout, "RefreshAuthGuard", c)
 		// Get access_token from cookies
 		token, err := c.Cookie("refresh_token")
 		if err != nil {
+			logger.PrintfWarning("No refresh token found")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.InvalidCookie,
@@ -100,8 +103,9 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		cfg, ok := c.Get("config")
+		conf, ok := c.Get("config")
 		if !ok {
+			logger.PrintfError("Config not found in context")
 			c.JSON(http.StatusInternalServerError, api.ApiError{
 				Code:  http.StatusInternalServerError,
 				Error: enum.ApiError,
@@ -110,7 +114,16 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		logger := common.NewLogger(os.Stdout, "RefreshAuthGuard")
+		cfg, ok := conf.(*common.Config)
+		if !ok {
+			logger.PrintfError("Type assertion error")
+			c.JSON(http.StatusInternalServerError, api.ApiError{
+				Code:  http.StatusInternalServerError,
+				Error: enum.ApiError,
+			})
+			c.Abort()
+			return
+		}
 
 		db, ok := c.Get("db")
 		if !ok {
@@ -123,7 +136,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		payload, err := ValidateToken(cfg.(*common.Config), token)
+		payload, err := ValidateToken(cfg, token)
 		if err != nil {
 			logger.PrintfError("Error validating token: %s", err.Error())
 			if errors.Is(err, jwt.ErrTokenExpired) {
@@ -162,15 +175,13 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		var key database.UserKeys
-
-		if err := db.(*gorm.DB).Where("Id = ?", payload.UserId).First(&key).Error; err != nil || key.RefreshToken != token {
+		if err := db.(*gorm.DB).First(&database.UserKeys{}, "user_id = ? AND refresh_token = ?", payload.UserId, token).Error; err != nil {
 			logger.PrintfWarning("Invalid refresh token")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.InvalidRefresh,
 			})
-			c.SetCookie("refresh_token", "", -1, "/", "", cfg.(common.Config).Stage != "development", true)
+			c.SetCookie("refresh_token", "", -1, "/", "", cfg.Stage != "development", true)
 
 			c.Abort()
 			return

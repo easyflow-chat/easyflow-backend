@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on error
+set -e
+
 # Check if pre-commit is installed and install it if it's not
 if ! command -v pre-commit &> /dev/null
 then
