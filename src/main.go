@@ -32,12 +32,12 @@ func main() {
 		panic(err)
 	}
 
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{cfg.FrontendURL}
-	corsConfig.AllowCredentials = true
-
 	router := gin.New()
-	router.Use(cors.New(corsConfig))
+	router.Use(cors.New(cors.Config{
+		AllowAllOrigins:  false,
+		AllowOrigins:     []string{cfg.FrontendURL},
+		AllowCredentials: true,
+	}))
 	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))
 	router.Use(middleware.ConfigMiddleware(cfg))
 	logger := common.NewLogger(os.Stdout, "Main", nil)
