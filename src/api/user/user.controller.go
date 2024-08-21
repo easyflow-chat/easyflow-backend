@@ -6,7 +6,6 @@ import (
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/enum"
 	"easyflow-backend/src/middleware"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -63,6 +62,7 @@ func GetUserController(c *gin.Context) {
 		return
 	}
 
+	logger.PrintfInfo("Getting user: %s", user.(*auth.JWTPayload).UserId)
 	userFromDb, err := GetUserById(db, user.(*auth.JWTPayload), logger)
 
 	if err != nil {
@@ -86,7 +86,7 @@ func GetProfilePictureController(c *gin.Context) {
 
 	user, ok := c.Get("user")
 	if !ok {
-		fmt.Println("User data not found in context")
+		logger.PrintfError("User data not found in context")
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
@@ -94,6 +94,7 @@ func GetProfilePictureController(c *gin.Context) {
 		return
 	}
 
+	logger.PrintfInfo("Getting profile picture for user: %s", user.(*auth.JWTPayload).UserId)
 	imageURL, err := GenerateGetProfilePictureURL(db, user.(*auth.JWTPayload), logger, cfg)
 
 	if err != nil {
@@ -124,6 +125,7 @@ func UserExists(c *gin.Context) {
 		return
 	}
 
+	logger.PrintfInfo("Checking if user with email '%s' exists", email)
 	userInDb, err := GetUserByEmail(db, email, logger)
 
 	if err != nil {
@@ -154,6 +156,7 @@ func UpdateUserController(c *gin.Context) {
 		})
 	}
 
+	logger.PrintfInfo("Updating user: %s", user.(*auth.JWTPayload).UserId)
 	updatedUser, err := UpdateUser(db, user.(*auth.JWTPayload), payload, logger)
 
 	if err != nil {
@@ -184,6 +187,7 @@ func GenerateUploadProfilePictureURLController(c *gin.Context) {
 		})
 	}
 
+	logger.PrintfInfo("Generating upload profile picture url for user: %s", user.(*auth.JWTPayload).UserId)
 	uploadURL, err := GenerateUploadProfilePictureURL(db, user.(*auth.JWTPayload), logger, cfg)
 
 	if err != nil {
@@ -214,6 +218,7 @@ func DeleteUserController(c *gin.Context) {
 		return
 	}
 
+	logger.PrintfInfo("Deleting user: %s", user.(*auth.JWTPayload).UserId)
 	err := DeleteUser(db, user.(*auth.JWTPayload), logger)
 
 	if err != nil {
@@ -222,7 +227,5 @@ func DeleteUserController(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"message": "User deleted",
-	})
+	c.JSON(200, gin.H{})
 }

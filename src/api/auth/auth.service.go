@@ -131,11 +131,11 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	}, nil
 }
 
-func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger *common.Logger) (*JWTPair, *api.ApiError) {
+func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger *common.Logger) (*string, *api.ApiError) {
 	//get user from db
 	var user database.User
 	if err := db.First(&user, "id = ?", payload.UserId).Error; err != nil {
-		logger.PrintfError("Could not get user with id: %s", payload.UserId)
+		logger.PrintfWarning("Could not get user with id: %s", payload.UserId)
 		return nil, &api.ApiError{
 			Code:    http.StatusUnauthorized,
 			Error:   enum.Unauthorized,
@@ -168,10 +168,7 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 		}
 	}
 
-	return &JWTPair{
-		AccessToken:  accessToken,
-		RefreshToken: "",
-	}, nil
+	return &accessToken, nil
 }
 
 func LogoutService(db *gorm.DB, payload *JWTPayload, logger *common.Logger) *api.ApiError {

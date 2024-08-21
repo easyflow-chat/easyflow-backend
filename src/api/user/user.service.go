@@ -16,7 +16,6 @@ import (
 )
 
 func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, logger *common.Logger) (*CreateUserResponse, *api.ApiError) {
-	logger.PrintfInfo("Attempting to create user with email: %s", payload.Email)
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err == nil {
 		logger.PrintfError("User with email: %s already exists", payload.Email)
@@ -53,8 +52,6 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, log
 		}
 	}
 
-	logger.Printf("User created with email: %s", payload.Email)
-
 	return &CreateUserResponse{
 		Id:        user.Id,
 		CreatedAt: user.CreatedAt.String(),
@@ -64,7 +61,6 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, log
 }
 
 func GetUserById(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) (*GetUserResponse, *api.ApiError) {
-	logger.PrintfInfo("Attempting to get user with email: %s", jwtPayload.Email)
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -88,7 +84,6 @@ func GetUserById(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger
 }
 
 func GetUserByEmail(db *gorm.DB, email string, logger *common.Logger) (bool, *api.ApiError) {
-	logger.PrintfInfo("Attempting to find user with email: %s", email)
 	var user database.User
 	err := db.Where("email = ?", email).First(&user).Error
 
@@ -109,7 +104,6 @@ func GetUserByEmail(db *gorm.DB, email string, logger *common.Logger) (bool, *ap
 }
 
 func GenerateGetProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
-	logger.PrintfInfo("Attempting to get profile picture for user with email: %s", jwtPayload.Email)
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -128,7 +122,6 @@ func GenerateGetProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logg
 }
 
 func GenerateUploadProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
-	logger.PrintfInfo("Attempting to create upload url for profile picture for user with email: %s", jwtPayload.Email)
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -152,7 +145,6 @@ func GenerateUploadProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, l
 }
 
 func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTPayload, payload *UpdateUserRequest, logger *common.Logger) (*UpdateUserResponse, *api.ApiError) {
-	logger.PrintfInfo("Attempting to update user with email: %s", jwtPayload.UserId)
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -189,7 +181,6 @@ func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTPayload, payload *UpdateUserReq
 }
 
 func DeleteUser(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) *api.ApiError {
-	logger.PrintfInfo("Attempting to delete user with email: %s", jwtPayload.UserId)
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
