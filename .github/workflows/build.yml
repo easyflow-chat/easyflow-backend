@@ -13,8 +13,8 @@ jobs:
       - name: Cache go modules
         uses: actions/cache@v3
         with:
-          path: go_modules
-          key: ${{ runner.os }}-go-${{ hashFiles('**/package-lock.json') }}
+          path: go.mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
 
