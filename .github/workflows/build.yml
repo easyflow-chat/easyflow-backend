@@ -10,10 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Cache go modules
+        uses: actions/cache@v3
         with:
-          go-version: '1.23.x'
+          path: go_modules
+          key: ${{ runner.os }}-go-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
       - name: Build
         run: |
