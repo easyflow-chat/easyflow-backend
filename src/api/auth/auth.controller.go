@@ -39,8 +39,9 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("access_token", jwtPair.AccessToken, cfg.RefreshExpirationTime, "/", "", cfg.Stage != "development", true)
-	c.SetCookie("refresh_token", jwtPair.RefreshToken, cfg.RefreshExpirationTime, "/", "", cfg.Stage != "development", true)
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("access_token", jwtPair.AccessToken, cfg.RefreshExpirationTime, "/", cfg.BackendDomain, cfg.Stage != "development", true)
+	c.SetCookie("refresh_token", jwtPair.RefreshToken, cfg.RefreshExpirationTime, "/", cfg.BackendDomain, cfg.Stage != "development", true)
 
 	c.JSON(200, true)
 }
@@ -99,13 +100,15 @@ func RefreshController(c *gin.Context) {
 	if err != nil {
 		logger.PrintfError("Error refreshing token: %s", err.Details)
 		// in case of error, clear the cookies so the user has to log in again
-		c.SetCookie("access_token", "", -1, "/", "", cfg.Stage != "development", true)
-		c.SetCookie("refresh_token", "", -1, "/", "", cfg.Stage != "development", true)
+		c.SetSameSite(http.SameSiteLaxMode)
+		c.SetCookie("access_token", "", -1, "/", cfg.BackendDomain, cfg.Stage != "development", true)
+		c.SetCookie("refresh_token", "", -1, "/", cfg.BackendDomain, cfg.Stage != "development", true)
 		c.JSON(err.Code, err)
 		return
 	}
 
-	c.SetCookie("access_token", *accessToken, int(payload.(*JWTPayload).ExpiresAt.Unix())-int(time.Now().Unix()), "/", "", cfg.Stage != "development", true)
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("access_token", *accessToken, int(payload.(*JWTPayload).ExpiresAt.Unix())-int(time.Now().Unix()), "/", cfg.BackendDomain, cfg.Stage != "development", true)
 
 	c.JSON(200, &gin.H{})
 }
@@ -150,8 +153,9 @@ func LogoutController(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("access_token", "", -1, "/", cfg.FrontendURL, cfg.Stage != "development", true)
-	c.SetCookie("refresh_token", "", -1, "/", cfg.FrontendURL, cfg.Stage != "development", true)
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("access_token", "", -1, "/", cfg.BackendDomain, cfg.Stage != "development", true)
+	c.SetCookie("refresh_token", "", -1, "/", cfg.BackendDomain, cfg.Stage != "development", true)
 
 	c.JSON(200, gin.H{})
 	logger.Printf("Successfully logged out user with id: %s", payload.UserId)

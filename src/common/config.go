@@ -30,6 +30,7 @@ type Config struct {
 	BucketSecret             string
 	ProfilePictureBucketName string
 	FrontendURL              string
+	BackendDomain            string
 }
 
 func getEnv(key, fallback string) string {
@@ -75,5 +76,6 @@ func LoadDefaultConfig() *Config {
 		BucketSecret:             getEnv("BUCKET_SECRET", ""),
 		ProfilePictureBucketName: getEnv("PROFILE_PICTURE_BUCKET_NAME", ""),
 		FrontendURL:              getEnv("FRONTEND_URL", ""),
+		BackendDomain:            getEnv("BACKEND_DOMAIN", ""),
 	}
 }
