@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	gorm.io/driver/mysql v1.5.7 // direct
-	gorm.io/gorm v1.25.11 // direct
+	gorm.io/gorm v1.25.12 // direct
 )
 
 require (
