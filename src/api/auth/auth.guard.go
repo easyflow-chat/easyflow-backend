@@ -182,7 +182,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 				Error: enum.InvalidRefresh,
 			})
 			c.SetSameSite(http.SameSiteLaxMode)
-			c.SetCookie("refresh_token", "", -1, "/", cfg.BackendDomain, cfg.Stage != "development", true)
+			c.SetCookie("refresh_token", "", -1, "/", cfg.BackendDomain, cfg.Stage != "development", false)
 
 			c.Abort()
 			return
