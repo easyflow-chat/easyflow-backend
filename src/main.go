@@ -32,15 +32,18 @@ func main() {
 		panic(err)
 	}
 
+	logger := common.NewLogger(os.Stdout, "Main", nil)
+
 	router := gin.New()
+	logger.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
 	router.Use(cors.New(cors.Config{
-		AllowAllOrigins:  false,
 		AllowOrigins:     []string{cfg.FrontendURL},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowCredentials: true,
+		AllowWildcard:    true,
 	}))
 	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))
 	router.Use(middleware.ConfigMiddleware(cfg))
-	logger := common.NewLogger(os.Stdout, "Main", nil)
 	router.Use(gin.Recovery())
 
 	//register user endpoints
