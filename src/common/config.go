@@ -75,7 +75,7 @@ func LoadDefaultConfig() *Config {
 		BucketAccessKeyId:        getEnv("BUCKET_ACCESS_KEY_ID", ""),
 		BucketSecret:             getEnv("BUCKET_SECRET", ""),
 		ProfilePictureBucketName: getEnv("PROFILE_PICTURE_BUCKET_NAME", ""),
-		FrontendURL:              getEnv("FRONTEND_URL", ""),
-		BackendDomain:            getEnv("BACKEND_DOMAIN", ""),
+		FrontendURL:              getEnv("FRONTEND_URL", "http://localhost:3000"),
+		BackendDomain:            getEnv("BACKEND_DOMAIN", "localhost"),
 	}
 }
