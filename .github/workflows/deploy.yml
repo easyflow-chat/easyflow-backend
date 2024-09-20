@@ -32,9 +32,6 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-
-      - name: install packages
-        run: go install
         
       - name: linting
         run: go mod tidy && gofmt -w .
