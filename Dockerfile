@@ -1,4 +1,4 @@
-FROM nginx:alpine as production
+FROM nginx:alpine
 
 # Add the appuser and appgroup
 RUN addgroup -g 2000 -S appgroup
@@ -10,9 +10,9 @@ RUN chown -R appuser:appgroup /app
 WORKDIR /app
 
 # Copy the binary from the builder image
-COPY --chown=appuser:appgroup --from=builder ./bin/easyflow-backend ./easyflow-backend
-COPY --chown=appuser:appgroup --from=builder ./nginx.conf /etc/nginx/nginx.conf
-COPY --chown=appuser:appgroup --from=builder ./entrypoint.sh ./entrypoint.sh
+COPY --chown=appuser:appgroup ./bin/easyflow-backend ./easyflow-backend
+COPY --chown=appuser:appgroup ./nginx.conf /etc/nginx/nginx.conf
+COPY --chown=appuser:appgroup ./entrypoint.sh ./entrypoint.sh
 
 # Create the necessary directories with correct permissions
 RUN mkdir -p /var/ /var/run /logs/ && \
