@@ -38,7 +38,7 @@ func main() {
 
 	logger.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{cfg.FrontendURL},
+		AllowAllOrigins:  true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowCredentials: true,
 		AllowWildcard:    true,
