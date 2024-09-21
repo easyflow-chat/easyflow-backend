@@ -35,7 +35,15 @@ func main() {
 	logger := common.NewLogger(os.Stdout, "Main", nil)
 
 	router := gin.New()
-	router.Use(cors.Default())
+
+	logger.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{cfg.FrontendURL},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowCredentials: true,
+		AllowWildcard:    true,
+	}))
+
 	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))
 	router.Use(middleware.ConfigMiddleware(cfg))
 	router.Use(gin.Recovery())
