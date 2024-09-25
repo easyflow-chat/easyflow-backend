@@ -54,12 +54,15 @@ func main() {
 	router := gin.New()
 
 	log.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
-	router.Use(cors.New(cors.Config{
+	corsConfig := cors.Config{
 		AllowOrigins:     []string{cfg.FrontendURL},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowCredentials: true,
 		AllowWildcard:    true,
-	}))
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+	}
+	router.Use(cors.New(corsConfig))
 
 	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))
 	router.Use(middleware.ConfigMiddleware(cfg))
