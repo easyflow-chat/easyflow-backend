@@ -55,7 +55,7 @@ func main() {
 
 	log.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
 	corsConfig := cors.Config{
-		AllowAllOrigins:  true,
+		AllowOrigins:     []string{cfg.FrontendURL},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowCredentials: true,
 		AllowWildcard:    true,
