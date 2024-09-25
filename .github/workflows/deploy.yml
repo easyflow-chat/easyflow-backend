@@ -57,6 +57,8 @@ jobs:
           images: ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ vars.DOCKER_IMAGE_NAME }}
           tags: |
             type=raw,value=dev,enable=${{ github.ref_name == 'main' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+            type=raw,value=${{ github.ref_name }},enable=${{ github.event_name == 'release' }}
       
       - name: build and push docker image
         uses: docker/build-push-action@v6

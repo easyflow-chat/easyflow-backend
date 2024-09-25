@@ -5,7 +5,6 @@ RUN addgroup -g 2000 -S appgroup
 RUN adduser -DH -s /sbin/nologin -u 2000 -G appgroup -S appuser
 
 RUN mkdir /app
-RUN chown -R appuser:appgroup /app
 
 WORKDIR /app
 
