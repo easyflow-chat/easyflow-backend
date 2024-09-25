@@ -8,6 +8,7 @@ import (
 	"easyflow-backend/src/database"
 	"easyflow-backend/src/middleware"
 	"os"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -16,10 +17,28 @@ import (
 
 func main() {
 	cfg := common.LoadDefaultConfig()
-	dbInst, err := database.NewDatabaseInst(cfg.DatabaseURL, &cfg.GormConfig)
 
-	if err != nil {
-		panic(err)
+	log := common.NewLogger(os.Stdout, "Main", nil)
+	var isConnected = false
+	var dbInst *database.DatabaseInst
+	var connectionAttempts = 0
+	var connectionPause = 5
+	for !isConnected {
+		var err error
+		dbInst, err = database.NewDatabaseInst(cfg.DatabaseURL, &cfg.GormConfig)
+
+		if err != nil {
+			if connectionAttempts <= 5 {
+				connectionAttempts++
+				log.PrintfError("Failed to connect to database, retrying in %d seconds. Attempt %d", connectionPause, connectionAttempts)
+				time.Sleep(time.Duration(connectionPause) * time.Second)
+				connectionPause += 5
+			} else {
+				panic(err)
+			}
+		} else {
+			isConnected = true
+		}
 	}
 
 	if !cfg.DebugMode {
@@ -27,18 +46,16 @@ func main() {
 		dbInst.SetLogMode(logger.Silent)
 	}
 
-	err = dbInst.Migrate()
+	err := dbInst.Migrate()
 	if err != nil {
 		panic(err)
 	}
 
-	logger := common.NewLogger(os.Stdout, "Main", nil)
-
 	router := gin.New()
 
-	logger.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
+	log.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
 	router.Use(cors.New(cors.Config{
-		AllowAllOrigins:  true,
+		AllowOrigins:     []string{cfg.FrontendURL},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowCredentials: true,
 		AllowWildcard:    true,
@@ -51,22 +68,22 @@ func main() {
 	//register user endpoints
 	userEndpoints := router.Group("/user")
 	{
-		logger.Printf("Registering user endpoints")
+		log.Printf("Registering user endpoints")
 		user.RegisterUserEndpoints(userEndpoints)
 	}
 
 	authEndpoints := router.Group("/auth")
 	{
-		logger.Printf("Registering auth endpoints")
+		log.Printf("Registering auth endpoints")
 		auth.RegisterAuthEndpoints(authEndpoints)
 	}
 
 	chatEndpoints := router.Group("/chat")
 	{
-		logger.Printf("Registering chat endpoints")
+		log.Printf("Registering chat endpoints")
 		chat.RegisterChatEndpoints(chatEndpoints)
 	}
 
-	logger.Printf("Starting server on port %s", cfg.Port)
+	log.Printf("Starting server on port %s", cfg.Port)
 	router.Run(":" + cfg.Port)
 }
