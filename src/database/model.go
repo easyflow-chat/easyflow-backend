@@ -75,10 +75,11 @@ func (cuk *ChatUserKeys) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type UserKeys struct {
-	Id           string    `gorm:"type:varchar(36);primaryKey"`
+	Id           string    `gorm:"type:varchar(36);primaryKey:default:uuid()"`
 	CreatedAt    time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
 	UpdatedAt    time.Time `gorm:"type:datetime"`
 	ExpiredAt    time.Time `gorm:"type:datetime"`
+	Unique       string    `gorm:"type:varchar(36);uniqueIndex"`
 	User         User      `gorm:"foreignKey:UserId"`
 	UserId       string    `gorm:"type:varchar(36);index"`
 	RefreshToken string    `gorm:"type:text"`

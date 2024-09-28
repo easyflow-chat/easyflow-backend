@@ -8,19 +8,19 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"gorm.io/gorm"
 )
 
 func AuthGuard() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger := common.NewLogger(os.Stdout, "AuthGuard", c)
 
-		// Get access_token from cookies
-		token, err := c.Cookie("access_token")
-		if err != nil {
+		// Get access_token from header
+		token := strings.Split(c.GetHeader("Authorization"), "Bearer ")[1]
+		if token == "" {
 			logger.PrintfWarning("No access token found")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
@@ -29,6 +29,7 @@ func AuthGuard() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		logger.Printf(token)
 
 		// Get config from context
 		cfg, ok := c.Get("config")
@@ -90,53 +91,18 @@ func AuthGuard() gin.HandlerFunc {
 
 func RefreshAuthGuard() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		logger := common.NewLogger(os.Stdout, "RefreshAuthGuard", c)
-		// Get access_token from cookies
-		token, err := c.Cookie("refresh_token")
-		if err != nil {
-			logger.PrintfWarning("No refresh token found")
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.InvalidCookie,
-			})
-			c.Abort()
-			return
-		}
-
-		conf, ok := c.Get("config")
-		if !ok {
-			logger.PrintfError("Config not found in context")
+		payload, logger, db, cfg, errs := common.SetupEndpoint[RefreshTokenRequest](c)
+		if errs != nil {
 			c.JSON(http.StatusInternalServerError, api.ApiError{
-				Code:  http.StatusInternalServerError,
-				Error: enum.ApiError,
+				Code:    http.StatusInternalServerError,
+				Error:   enum.ApiError,
+				Details: errs,
 			})
 			c.Abort()
 			return
 		}
 
-		cfg, ok := conf.(*common.Config)
-		if !ok {
-			logger.PrintfError("Type assertion error")
-			c.JSON(http.StatusInternalServerError, api.ApiError{
-				Code:  http.StatusInternalServerError,
-				Error: enum.ApiError,
-			})
-			c.Abort()
-			return
-		}
-
-		db, ok := c.Get("db")
-		if !ok {
-			logger.PrintfError("Database not found in context")
-			c.JSON(http.StatusInternalServerError, api.ApiError{
-				Code:  http.StatusInternalServerError,
-				Error: enum.ApiError,
-			})
-			c.Abort()
-			return
-		}
-
-		payload, err := ValidateToken(cfg, token)
+		token, err := ValidateToken(cfg, payload.RefreshToken)
 		if err != nil {
 			logger.PrintfError("Error validating token: %s", err.Error())
 			if errors.Is(err, jwt.ErrTokenExpired) {
@@ -155,7 +121,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		if payload.Issuer != "easyflow" {
+		if token.Issuer != "easyflow" {
 			logger.PrintfWarning("Invalid issuer")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
@@ -165,7 +131,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		if payload.IsAccess {
+		if token.IsAccess {
 			logger.PrintfWarning("Invalid token type")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
@@ -175,20 +141,18 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		if err := db.(*gorm.DB).First(&database.UserKeys{}, "user_id = ? AND refresh_token = ?", payload.UserId, token).Error; err != nil {
+		if err := db.First(&database.UserKeys{}, "user_id = ? AND refresh_token = ?", token.UserId, token).Error; err != nil {
 			logger.PrintfWarning("Invalid refresh token")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.InvalidRefresh,
 			})
-			c.SetSameSite(http.SameSiteLaxMode)
-			c.SetCookie("refresh_token", "", -1, "/", cfg.BackendDomain, cfg.Stage != "development", false)
 
 			c.Abort()
 			return
 		}
 
-		c.Set("user", payload)
+		c.Set("user", token)
 		c.Next()
 	}
 }
