@@ -19,8 +19,20 @@ func AuthGuard() gin.HandlerFunc {
 		logger := common.NewLogger(os.Stdout, "AuthGuard", c)
 
 		// Get access_token from header
-		token := strings.Split(c.GetHeader("Authorization"), "Bearer ")[1]
-		if token == "" {
+		var token string
+		header := c.GetHeader("Authorization")
+		if header != "" {
+			token = strings.Split(header, "Bearer ")[1]
+			if token == "" {
+				logger.PrintfWarning("No access token found")
+				c.JSON(http.StatusUnauthorized, api.ApiError{
+					Code:  http.StatusUnauthorized,
+					Error: enum.InvalidCookie,
+				})
+				c.Abort()
+				return
+			}
+		} else {
 			logger.PrintfWarning("No access token found")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
@@ -29,7 +41,8 @@ func AuthGuard() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		logger.Printf(token)
+
+		logger.Printf("Token %s", token)
 
 		// Get config from context
 		cfg, ok := c.Get("config")

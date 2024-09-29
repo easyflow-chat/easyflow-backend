@@ -53,6 +53,8 @@ func main() {
 
 	router := gin.New()
 
+	router.SetTrustedProxies(nil)
+
 	log.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
 	corsConfig := cors.Config{
 		AllowOrigins:     []string{cfg.FrontendURL},

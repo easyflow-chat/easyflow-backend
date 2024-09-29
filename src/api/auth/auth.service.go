@@ -58,7 +58,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 		}
 	}
 
-	unique := uuid.New()
+	random := uuid.New()
 	expires := time.Now().Add(time.Duration(cfg.JwtExpirationTime) * time.Second)
 	refreshExpires := time.Now().Add(time.Duration(cfg.RefreshExpirationTime) * time.Second)
 
@@ -70,7 +70,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 		},
 		UserId:      user.Id,
 		Email:       user.Email,
-		RefreshRand: &unique,
+		RefreshRand: &random,
 		IsAccess:    true,
 	}
 
@@ -82,7 +82,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 		},
 		UserId:      user.Id,
 		Email:       user.Email,
-		RefreshRand: &unique,
+		RefreshRand: &random,
 		IsAccess:    false,
 	}
 
@@ -110,13 +110,13 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 
 	//write refresh token to db
 	entry := database.UserKeys{
-		Unique:       unique.String(),
+		Random:       random.String(),
 		ExpiredAt:    refreshExpires,
 		RefreshToken: refreshToken,
 		UserId:       user.Id,
 	}
 
-	if err := db.Create(&entry).Error; err != nil {
+	if err := db.Save(&entry).Error; err != nil {
 		logger.PrintfError("Error updating user key: %s", err)
 		return UserWithTokens{}, &api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -152,7 +152,7 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 		}
 	}
 
-	unique := uuid.New()
+	random := uuid.New()
 	expires := time.Now().Add(time.Duration(cfg.JwtExpirationTime) * time.Second)
 	refreshExpires := time.Now().Add(time.Duration(cfg.RefreshExpirationTime) * time.Second)
 
@@ -164,7 +164,7 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 		},
 		UserId:      user.Id,
 		Email:       user.Email,
-		RefreshRand: &unique,
+		RefreshRand: &random,
 		IsAccess:    true,
 	}
 
@@ -176,7 +176,7 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 		},
 		UserId:      user.Id,
 		Email:       user.Email,
-		RefreshRand: &unique,
+		RefreshRand: &random,
 		IsAccess:    false,
 	}
 
@@ -202,15 +202,15 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 
 	//write refresh token to db
 	if err := db.Model(database.UserKeys{}).Where(
-		"user_id = ? AND unique = ?",
+		"user_id = ? AND random = ?",
 		payload.UserId, payload.RefreshRand,
 	).Updates(
 		database.UserKeys{
-			Unique:       unique.String(),
+			Random:       random.String(),
 			RefreshToken: refreshToken,
 			ExpiredAt:    refreshExpires,
 		}).Error; err != nil {
-		logger.PrintfError("Error updating user key with user id: %s and unique: %s", payload.UserId, payload.RefreshRand)
+		logger.PrintfError("Error updating user key with user id: %s and random: %s", payload.UserId, payload.RefreshRand)
 
 	}
 
