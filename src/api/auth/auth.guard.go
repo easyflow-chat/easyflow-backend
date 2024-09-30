@@ -42,8 +42,6 @@ func AuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		logger.Printf("Token %s", token)
-
 		// Get config from context
 		cfg, ok := c.Get("config")
 		if !ok {
