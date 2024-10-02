@@ -7,7 +7,6 @@ import (
 	"easyflow-backend/src/enum"
 	"errors"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +15,16 @@ import (
 
 func AuthGuard() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		logger := common.NewLogger(os.Stdout, "AuthGuard", c)
+		_, logger, _, cfg, errs := common.SetupEndpoint[any](c)
+		if errs != nil {
+			c.JSON(http.StatusInternalServerError, api.ApiError{
+				Code:    http.StatusInternalServerError,
+				Error:   enum.ApiError,
+				Details: errs,
+			})
+			c.Abort()
+			return
+		}
 
 		// Get access_token from header
 		var token string
@@ -42,19 +50,8 @@ func AuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		// Get config from context
-		cfg, ok := c.Get("config")
-		if !ok {
-			c.JSON(http.StatusInternalServerError, api.ApiError{
-				Code:  http.StatusInternalServerError,
-				Error: enum.ApiError,
-			})
-			c.Abort()
-			return
-		}
-
 		// Validate token
-		payload, err := ValidateToken(cfg.(*common.Config), token)
+		payload, err := ValidateToken(cfg, token)
 		if err != nil {
 			logger.PrintfError("Error validating token: %s", err.Error())
 			if errors.Is(err, jwt.ErrTokenExpired) {

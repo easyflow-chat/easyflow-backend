@@ -18,7 +18,7 @@ import (
 func main() {
 	cfg := common.LoadDefaultConfig()
 
-	log := common.NewLogger(os.Stdout, "Main", nil)
+	log := common.NewLogger(os.Stdout, "Main", nil, common.LogLevel(cfg.LogLevel))
 	var isConnected = false
 	var dbInst *database.DatabaseInst
 	var connectionAttempts = 0

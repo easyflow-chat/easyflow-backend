@@ -62,11 +62,9 @@ func GetUserController(c *gin.Context) {
 		return
 	}
 
-	logger.PrintfInfo("Getting user: %s", user.(*auth.JWTPayload).UserId)
 	userFromDb, err := GetUserById(db, user.(*auth.JWTPayload), logger)
 
 	if err != nil {
-		logger.PrintfError("Error getting user: %s", err.Error)
 		c.JSON(err.Code, err)
 		return
 	}
@@ -86,7 +84,6 @@ func GetProfilePictureController(c *gin.Context) {
 
 	user, ok := c.Get("user")
 	if !ok {
-		logger.PrintfError("User data not found in context")
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
@@ -94,7 +91,6 @@ func GetProfilePictureController(c *gin.Context) {
 		return
 	}
 
-	logger.PrintfInfo("Getting profile picture for user: %s", user.(*auth.JWTPayload).UserId)
 	imageURL, err := GenerateGetProfilePictureURL(db, user.(*auth.JWTPayload), logger, cfg)
 
 	if err != nil {
@@ -125,11 +121,9 @@ func UserExists(c *gin.Context) {
 		return
 	}
 
-	logger.PrintfInfo("Checking if user with email '%s' exists", email)
 	userInDb, err := GetUserByEmail(db, email, logger)
 
 	if err != nil {
-		logger.PrintfError("Error getting user: %s", err.Error)
 		c.JSON(err.Code, err)
 		return
 	}
@@ -156,11 +150,9 @@ func UpdateUserController(c *gin.Context) {
 		})
 	}
 
-	logger.PrintfInfo("Updating user: %s", user.(*auth.JWTPayload).UserId)
 	updatedUser, err := UpdateUser(db, user.(*auth.JWTPayload), payload, logger)
 
 	if err != nil {
-		logger.PrintfError("Error updating user: %s", err.Error)
 		c.JSON(err.Code, err)
 		return
 	}
@@ -187,7 +179,6 @@ func GenerateUploadProfilePictureURLController(c *gin.Context) {
 		})
 	}
 
-	logger.PrintfInfo("Generating upload profile picture url for user: %s", user.(*auth.JWTPayload).UserId)
 	uploadURL, err := GenerateUploadProfilePictureURL(db, user.(*auth.JWTPayload), logger, cfg)
 
 	if err != nil {
@@ -218,11 +209,9 @@ func DeleteUserController(c *gin.Context) {
 		return
 	}
 
-	logger.PrintfInfo("Deleting user: %s", user.(*auth.JWTPayload).UserId)
 	err := DeleteUser(db, user.(*auth.JWTPayload), logger)
 
 	if err != nil {
-		logger.PrintfError("Error deleting user: %s", err.Error)
 		c.JSON(err.Code, err)
 		return
 	}

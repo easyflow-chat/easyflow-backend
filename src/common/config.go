@@ -13,6 +13,8 @@ import (
 type Config struct {
 	// stage
 	Stage string
+	// log level
+	LogLevel LogLevel
 	//gorm
 	GormConfig gorm.Config
 	//env
@@ -77,5 +79,6 @@ func LoadDefaultConfig() *Config {
 		ProfilePictureBucketName: getEnv("PROFILE_PICTURE_BUCKET_NAME", ""),
 		FrontendURL:              getEnv("FRONTEND_URL", "http://localhost:3000"),
 		BackendDomain:            getEnv("BACKEND_DOMAIN", "localhost"),
+		LogLevel:                 LogLevel(getEnv("LOG_LEVEL", "DEBUG")),
 	}
 }

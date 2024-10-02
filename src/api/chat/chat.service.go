@@ -93,6 +93,8 @@ func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *auth.JWTPay
 		}
 	}
 
+	logger.Printf("Successfully created chat with id: %s", chat.Id)
+
 	return &CreateChatResponse{
 		Id:          chat.Id,
 		CreatedAt:   chat.CreatedAt.String(),
@@ -152,6 +154,8 @@ func GetChatPreviews(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Lo
 			chatPreviews = append(chatPreviews, chatPreview)
 		}
 	}
+
+	logger.Printf("Successfully got chat previews for user: %s", jwtPayload.UserId)
 
 	return chatPreviews, nil
 }
@@ -229,6 +233,8 @@ func GetChatById(db *gorm.DB, chatId string, jwtPayload *auth.JWTPayload, logger
 			},
 		)
 	}
+
+	logger.Printf("Successfully got chat with id: %s", chatId)
 
 	return &GetChatByIdResponse{
 		CreateChatResponse: CreateChatResponse{

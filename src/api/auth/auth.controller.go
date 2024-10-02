@@ -30,10 +30,8 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	logger.PrintfInfo("Logging in user with email: %s", payload.Email)
 	user, err := LoginService(db, cfg, payload, logger)
 	if err != nil {
-		logger.PrintfError("Error logging in: %s", err.Details)
 		c.JSON(err.Code, err)
 		return
 	}
@@ -42,19 +40,8 @@ func LoginController(c *gin.Context) {
 }
 
 func CheckLoginController(c *gin.Context) {
-	_, logger, _, _, errors := common.SetupEndpoint[any](c)
-	if errors != nil {
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    http.StatusInternalServerError,
-			Error:   enum.ApiError,
-			Details: errors,
-		})
-		return
-	}
-
-	user, ok := c.Get("user")
+	_, ok := c.Get("user")
 	if !ok {
-		logger.PrintfError("User not found in context")
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -63,7 +50,6 @@ func CheckLoginController(c *gin.Context) {
 		return
 	}
 
-	logger.PrintfInfo("User with id: %s is logged in", user.(*JWTPayload).UserId)
 	// only returns if it comes through the authguard so we can assume the user is logged in
 	c.JSON(200, true)
 }
@@ -81,7 +67,6 @@ func RefreshController(c *gin.Context) {
 
 	payload, ok := c.Get("user")
 	if !ok {
-		logger.PrintfError("User not found in context")
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
@@ -89,12 +74,9 @@ func RefreshController(c *gin.Context) {
 		return
 	}
 
-	logger.PrintfInfo("Refreshing token for user with id: %s", payload.(*JWTPayload).UserId)
 	tokens, err := RefreshService(db, cfg, payload.(*JWTPayload), logger)
 
 	if err != nil {
-		logger.PrintfError("Error refreshing token: %s", err.Details)
-		// in case of error, clear the cookies so the user has to log in again
 		c.JSON(err.Code, err)
 		return
 	}
@@ -115,7 +97,6 @@ func LogoutController(c *gin.Context) {
 
 	refresh, err := c.Cookie("refresh_token")
 	if err != nil {
-		logger.PrintfWarning("No refresh token")
 		c.JSON(http.StatusBadRequest, api.ApiError{
 			Code:    http.StatusBadRequest,
 			Error:   enum.InvalidRefresh,
@@ -125,7 +106,6 @@ func LogoutController(c *gin.Context) {
 
 	payload, err := ValidateToken(cfg, refresh)
 	if err != nil {
-		logger.PrintfError("An error occoured while validating refresh token")
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -134,14 +114,11 @@ func LogoutController(c *gin.Context) {
 		return
 	}
 
-	logger.PrintfInfo("Trying to logout user with id: %s", payload.UserId)
 	e := LogoutService(db, payload, logger)
 	if e != nil {
-		logger.PrintfError("An error occured while logging out user with id: %s", payload.UserId)
 		c.JSON(e.Code, e)
 		return
 	}
 
 	c.JSON(200, gin.H{})
-	logger.Printf("Successfully logged out user with id: %s", payload.UserId)
 }
