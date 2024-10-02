@@ -18,7 +18,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/aws/aws-sdk-go-v2/config v1.27.39
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.37
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.63.2
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.63.3
 	golang.org/x/time v0.6.0
 )
 
