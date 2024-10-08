@@ -149,7 +149,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		if err := db.First(&database.UserKeys{}, "user_id = ? AND refresh_token = ?", token.UserId, token).Error; err != nil {
+		if err := db.First(&database.UserKeys{}, "user_id = ? AND random = ?", token.UserId, token.RefreshRand).Error; err != nil {
 			logger.PrintfWarning("Invalid refresh token")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,

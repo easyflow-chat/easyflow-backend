@@ -2,10 +2,13 @@ package auth
 
 import (
 	"easyflow-backend/src/api"
+	"easyflow-backend/src/api/utils"
 	"easyflow-backend/src/common"
 	"easyflow-backend/src/database"
 	"easyflow-backend/src/enum"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -125,6 +128,36 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 		}
 	}
 
+	if user.ProfilePicture == nil {
+		utils.GenerateNewProfilePictureUrl(logger, cfg, db, &user)
+	} else {
+		expired := false
+
+		pictureUrl, err := url.Parse(*user.ProfilePicture)
+		if err != nil {
+			expired = true
+		}
+
+		query := pictureUrl.Query()
+		issuedAt, err := time.Parse(time.RFC3339, query.Get("X-Amz-Date"))
+		if err != nil {
+			expired = true
+		}
+		expiryTime, err := strconv.ParseInt(query.Get("X-Amz-Expires"), 10, 64)
+		if err != nil {
+			expired = true
+		}
+
+		if issuedAt.Add(time.Duration(expiryTime) * time.Second).After(time.Now()) {
+			expired = true
+		}
+
+		if expired {
+			utils.GenerateNewProfilePictureUrl(logger, cfg, db, &user)
+		}
+
+	}
+
 	logger.Printf("Logged in user: %s", user.Id)
 
 	return UserWithTokens{
@@ -137,6 +170,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 		Iv:                 user.Iv,
 		PublicKey:          user.PublicKey,
 		PrivateKey:         user.PrivateKey,
+		ProfilePicture:     user.ProfilePicture,
 		AccessToken:        accessToken,
 		RefreshToken:       refreshToken,
 		AccessTokenExpires: expires.Unix(),

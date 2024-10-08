@@ -26,6 +26,7 @@ type UserWithTokens struct {
 	Iv                 string    `json:"iv"`
 	PublicKey          string    `json:"publicKey"`
 	PrivateKey         string    `json:"privateKey"`
+	ProfilePicture     *string   `json:"profilePicture"`
 	AccessToken        string    `json:"accessToken"`
 	RefreshToken       string    `json:"refreshToken"`
 	AccessTokenExpires int64     `json:"accessTokenExpires"`

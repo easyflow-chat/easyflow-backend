@@ -55,7 +55,7 @@ func CheckLoginController(c *gin.Context) {
 }
 
 func RefreshController(c *gin.Context) {
-	_, logger, db, cfg, errors := common.SetupEndpoint[any](c)
+	_, logger, db, cfg, errors := common.SetupEndpoint[RefreshTokenRequest](c)
 	if errors != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
