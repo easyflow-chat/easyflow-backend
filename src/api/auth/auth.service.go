@@ -113,10 +113,9 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 
 	//write refresh token to db
 	entry := database.UserKeys{
-		Random:       random.String(),
-		ExpiredAt:    refreshExpires,
-		RefreshToken: refreshToken,
-		UserId:       user.Id,
+		Random:    random.String(),
+		ExpiredAt: refreshExpires,
+		UserId:    user.Id,
 	}
 
 	if err := db.Save(&entry).Error; err != nil {
@@ -159,6 +158,9 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	}
 
 	logger.Printf("Logged in user: %s", user.Id)
+
+	logger.PrintfDebug("Access: %s", accessToken)
+	logger.PrintfDebug("Refresh: %s", refreshToken)
 
 	return UserWithTokens{
 		Id:                 user.Id,
@@ -237,15 +239,16 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 		}
 	}
 
-	//write refresh token to db
+	//write refresh token random to db
 	if err := db.Model(database.UserKeys{}).Where(
-		"user_id = ? AND random = ?",
-		payload.UserId, payload.RefreshRand,
+		&database.UserKeys{
+			UserId: payload.UserId,
+			Random: payload.RefreshRand.String(),
+		},
 	).Updates(
 		database.UserKeys{
-			Random:       random.String(),
-			RefreshToken: refreshToken,
-			ExpiredAt:    refreshExpires,
+			Random:    random.String(),
+			ExpiredAt: refreshExpires,
 		}).Error; err != nil {
 		logger.PrintfError("Error updating user key with user id: %s and random: %s", payload.UserId, payload.RefreshRand)
 
@@ -264,7 +267,7 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 
 func LogoutService(db *gorm.DB, payload *JWTPayload, logger *common.Logger) *api.ApiError {
 	if err := db.Delete(&database.UserKeys{}, payload.RefreshRand).Error; err != nil {
-		logger.PrintfError("Could not delete Refresh Token with id: %s", payload.RefreshRand)
+		logger.PrintfError("Could not delete Refresh Token with random: %s and user id: %s", payload.RefreshRand, payload.UserId)
 		return &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -272,7 +275,7 @@ func LogoutService(db *gorm.DB, payload *JWTPayload, logger *common.Logger) *api
 		}
 	}
 
-	logger.Printf("Successfully logged out user with id: %s", payload.UserId)
+	logger.Printf("Successfully ended session for user with id: %s and random: %s", payload.UserId, payload.RefreshRand)
 
 	return nil
 }

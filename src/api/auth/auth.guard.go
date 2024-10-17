@@ -99,7 +99,7 @@ func AuthGuard() gin.HandlerFunc {
 
 func RefreshAuthGuard() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		payload, logger, db, cfg, errs := common.SetupEndpoint[RefreshTokenRequest](c)
+		_, logger, db, cfg, errs := common.SetupEndpoint[RefreshTokenRequest](c)
 		if errs != nil {
 			c.JSON(http.StatusInternalServerError, api.ApiError{
 				Code:    http.StatusInternalServerError,
@@ -110,7 +110,11 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		token, err := ValidateToken(cfg, payload.RefreshToken)
+		refreshToken := c.GetHeader("Authorization")
+
+		logger.PrintfDebug("Refresh Token: %s", refreshToken)
+
+		token, err := ValidateToken(cfg, strings.Trim(refreshToken, " "))
 		if err != nil {
 			logger.PrintfError("Error validating token: %s", err.Error())
 			if errors.Is(err, jwt.ErrTokenExpired) {
