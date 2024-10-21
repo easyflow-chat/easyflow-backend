@@ -55,12 +55,11 @@ func main() {
 
 	log.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
 	corsConfig := cors.Config{
-		AllowOrigins:     []string{cfg.FrontendURL, "https://dev.easyflow.chat"},
+		AllowOrigins:     []string{cfg.FrontendURL},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowCredentials: true,
 		AllowWildcard:    true,
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin"},
 	}
 	router.Use(cors.New(corsConfig))
 
