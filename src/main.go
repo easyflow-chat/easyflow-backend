@@ -60,7 +60,7 @@ func main() {
 		AllowCredentials: true,
 		AllowWildcard:    true,
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
+		ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin"},
 	}
 	router.Use(cors.New(corsConfig))
 
