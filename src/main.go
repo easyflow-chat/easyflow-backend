@@ -10,7 +10,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm/logger"
 )
@@ -54,12 +53,13 @@ func main() {
 	router := gin.New()
 
 	log.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
+
 	corsConfig := cors.Config{
 		AllowOrigins:     []string{cfg.FrontendURL},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowCredentials: true,
 		AllowWildcard:    true,
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
+		AllowHeaders:     []string{"Origin"},
 	}
 	router.Use(cors.New(corsConfig))
 
