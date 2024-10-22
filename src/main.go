@@ -54,7 +54,11 @@ func main() {
 
 	log.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
 
-	router.Use(middleware.CorsMiddleware(cfg))
+	router.Use(middleware.CorsMiddleware(middleware.Config{
+		AllowedOrigins: []string{cfg.FrontendURL},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders: []string{"Authorization", "Content-Length", "Content-Type"},
+	}))
 
 	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))
 	router.Use(middleware.ConfigMiddleware(cfg))
