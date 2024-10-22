@@ -4,7 +4,6 @@ This is a cors middleware for the gin http framwork and can be used to configure
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"slices"
 	"strconv"
