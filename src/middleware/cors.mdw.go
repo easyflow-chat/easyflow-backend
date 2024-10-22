@@ -4,6 +4,7 @@ This is a cors middleware for the gin http framwork and can be used to configure
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 	"strconv"
@@ -101,22 +102,25 @@ func CorsMiddleware(config Config) gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusForbidden)
 		}
 
-		if !slices.Contains(config.AllowedOrigins, "*") || !slices.Contains(config.AllowedOrigins, currentOrigin) {
+		if !slices.Contains(config.AllowedOrigins, "*") && !slices.Contains(config.AllowedOrigins, currentOrigin) {
 			c.AbortWithStatus(http.StatusForbidden)
 		}
 
 		preflight := strings.ToUpper(c.Request.Method) == "OPTIONS"
 		if preflight {
+			// Headers for preflight requests
 			c.Writer.Header().Set("Access-Control-Allow-Methods", strings.Join(config.AllowedMethods, ", "))
 			c.Writer.Header().Set("Access-Control-Allow-Headers", strings.Join(config.AllowedHeaders, ", "))
 			c.Writer.Header().Set("Access-Control-Max-Age", config.MaxAge.String())
 		}
 
+		// Headers for all requests
 		c.Writer.Header().Set("Access-Control-Allow-Origin", strings.Join(config.AllowedOrigins, ", "))
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", strconv.FormatBool(config.AllowCredentials))
 		c.Writer.Header().Set("Access-Control-Expose-Headers", strings.Join(config.ExposeHeaders, ", "))
 
 		if preflight {
+			// If this is a preflight request we don't need to continue
 			c.AbortWithStatus(204)
 		}
 
