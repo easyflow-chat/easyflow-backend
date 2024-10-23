@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	cors "github.com/OnlyNico43/gin-cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm/logger"
 )
@@ -56,7 +57,14 @@ func main() {
 
 	log.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
 
-	router.Use(middleware.CorsMiddleware(cfg))
+	router.Use(cors.CorsMiddleware(cors.Config{
+		AllowedOrigins:   []string{cfg.FrontendURL},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedHeaders:   []string{"Authorization", "Content-Length", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	router.Use(middleware.DatabaseMiddleware(dbInst.GetClient()))
 	router.Use(middleware.ConfigMiddleware(cfg))
