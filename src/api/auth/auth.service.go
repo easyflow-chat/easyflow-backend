@@ -240,7 +240,7 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 	}
 
 	//write refresh token random to db
-	if err := db.Model(database.UserKeys{}).Where(
+	err = db.Model(database.UserKeys{}).Where(
 		&database.UserKeys{
 			UserId: payload.UserId,
 			Random: payload.RefreshRand.String(),
@@ -249,7 +249,9 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTPayload, logger
 		database.UserKeys{
 			Random:    random.String(),
 			ExpiredAt: refreshExpires,
-		}).Error; err != nil {
+		}).Error
+
+	if err != nil {
 		logger.PrintfError("Error updating user key with user id: %s and random: %s", payload.UserId, payload.RefreshRand)
 
 	}
