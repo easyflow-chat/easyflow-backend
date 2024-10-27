@@ -27,31 +27,20 @@ func AuthGuard() gin.HandlerFunc {
 		}
 
 		// Get access_token from header
-		var token string
-		header := c.GetHeader("Authorization")
-		if header != "" {
-			token = strings.Split(header, "Bearer ")[1]
-			if token == "" {
-				logger.PrintfWarning("No access token found")
-				c.JSON(http.StatusUnauthorized, api.ApiError{
-					Code:  http.StatusUnauthorized,
-					Error: enum.InvalidCookie,
-				})
-				c.Abort()
-				return
-			}
-		} else {
-			logger.PrintfWarning("No access token found")
+		accessToken := strings.TrimPrefix(c.GetHeader("Authorization"), "Bearer ")
+
+		if accessToken == "" {
+			logger.PrintfWarning("No access token provided")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
-				Error: enum.InvalidCookie,
+				Error: enum.Unauthorized,
 			})
 			c.Abort()
 			return
 		}
 
 		// Validate token
-		payload, err := ValidateToken(cfg, token)
+		payload, err := ValidateToken(cfg, accessToken)
 		if err != nil {
 			logger.PrintfError("Error validating token: %s", err.Error())
 			if errors.Is(err, jwt.ErrTokenExpired) {
@@ -99,7 +88,7 @@ func AuthGuard() gin.HandlerFunc {
 
 func RefreshAuthGuard() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		_, logger, db, cfg, errs := common.SetupEndpoint[RefreshTokenRequest](c)
+		_, logger, db, cfg, errs := common.SetupEndpoint[any](c)
 		if errs != nil {
 			c.JSON(http.StatusInternalServerError, api.ApiError{
 				Code:    http.StatusInternalServerError,
@@ -110,11 +99,19 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		refreshToken := c.GetHeader("Authorization")
+		refreshToken := strings.TrimPrefix(c.GetHeader("Authorization"), "Bearer ")
 
-		logger.PrintfDebug("Refresh Token: %s", refreshToken)
+		if refreshToken == "" {
+			logger.PrintfWarning("No refresh token provided")
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized,
+				Error: enum.Unauthorized,
+			})
+			c.Abort()
+			return
+		}
 
-		token, err := ValidateToken(cfg, strings.Trim(refreshToken, " "))
+		token, err := ValidateToken(cfg, refreshToken)
 		if err != nil {
 			logger.PrintfError("Error validating token: %s", err.Error())
 			if errors.Is(err, jwt.ErrTokenExpired) {

@@ -7,10 +7,6 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
-type RefreshTokenRequest struct {
-	RefreshToken string `json:"refreshToken" validate:"required"`
-}
-
 type RefreshTokenResponse struct {
 	JWTPair
 	AccessTokenExpires int64 `json:"accessTokenExpires"`
