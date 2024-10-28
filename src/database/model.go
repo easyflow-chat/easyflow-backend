@@ -48,7 +48,7 @@ type User struct {
 	Name           string         `gorm:"type:varchar(50)"`
 	Bio            *string        `gorm:"type:varchar(1000)"`
 	Iv             string         `gorm:"type:varchar(25)"`
-	ProfilePicture *string        `gorm:"type:varchar(200)"`
+	ProfilePicture *string        `gorm:"type:varchar(512)"`
 	PublicKey      string         `gorm:"type:text"`
 	PrivateKey     string         `gorm:"type:text"`
 	Keys           []ChatUserKeys `gorm:"foreignKey:UserId"`

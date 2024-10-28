@@ -14,7 +14,7 @@ func GenerateNewProfilePictureUrl(logger *common.Logger, cfg *common.Config, db 
 		user.ProfilePicture = pictureUrl
 
 		if err := db.Save(user).Error; err != nil {
-			logger.PrintfWarning("Could not save the new ProfilePicture url for user: %s", user.Id)
+			logger.PrintfWarning("Could not save the new ProfilePicture url for user: %s. Error: %s", user.Id, err)
 		}
 	}
 }
