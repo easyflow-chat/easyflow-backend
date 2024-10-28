@@ -33,7 +33,6 @@ func CreateChatController(c *gin.Context) {
 
 	user, ok := c.Get("user")
 	if !ok {
-		logger.PrintfError("User not found in context")
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:  http.StatusInternalServerError,
 			Error: enum.ApiError,
@@ -43,7 +42,6 @@ func CreateChatController(c *gin.Context) {
 
 	chat, err := CreateChat(db, payload, user.(*auth.JWTPayload), logger)
 	if err != nil {
-		logger.PrintfError("Error creating chat: %s", err.Details)
 		c.JSON(err.Code, err)
 		return
 	}
@@ -73,7 +71,6 @@ func GetChatPreviewsController(c *gin.Context) {
 
 	chats, err := GetChatPreviews(db, user.(*auth.JWTPayload), logger)
 	if err != nil {
-		logger.PrintfError("Error getting chat previews: %s", err.Details)
 		c.JSON(err.Code, err)
 		return
 	}
@@ -105,7 +102,6 @@ func GetChatByIdController(c *gin.Context) {
 
 	chat, err := GetChatById(db, chatId, user.(*auth.JWTPayload), logger)
 	if err != nil {
-		logger.PrintfError("Error getting chat by id: %s", err.Details)
 		c.JSON(err.Code, err)
 		return
 	}

@@ -40,17 +40,18 @@ func (c *Chat) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type User struct {
-	Id         string         `gorm:"type:varchar(36);primaryKey"`
-	CreatedAt  time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
-	UpdatedAt  time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
-	Email      string         `gorm:"type:varchar(255);uniqueIndex"`
-	Password   string         `gorm:"type:text"`
-	Name       string         `gorm:"type:varchar(50)"`
-	Bio        *string        `gorm:"type:varchar(1000)"`
-	Iv         string         `gorm:"type:varchar(25)"`
-	PublicKey  string         `gorm:"type:text"`
-	PrivateKey string         `gorm:"type:text"`
-	Keys       []ChatUserKeys `gorm:"foreignKey:UserId"`
+	Id             string         `gorm:"type:varchar(36);primaryKey"`
+	CreatedAt      time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
+	UpdatedAt      time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
+	Email          string         `gorm:"type:varchar(255);uniqueIndex"`
+	Password       string         `gorm:"type:text"`
+	Name           string         `gorm:"type:varchar(50)"`
+	Bio            *string        `gorm:"type:varchar(1000)"`
+	Iv             string         `gorm:"type:varchar(25)"`
+	ProfilePicture *string        `gorm:"type:varchar(200)"`
+	PublicKey      string         `gorm:"type:text"`
+	PrivateKey     string         `gorm:"type:text"`
+	Keys           []ChatUserKeys `gorm:"foreignKey:UserId"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
@@ -61,7 +62,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 type ChatUserKeys struct {
 	Id        string    `gorm:"type:varchar(36);primaryKey"`
 	CreatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
-	UpdatedAt time.Time `gorm:"type:datetime;column:updated_at"`
+	UpdatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
 	Key       string    `gorm:"type:text"`
 	ChatId    string    `gorm:"type:varchar(36);index"`
 	Chat      Chat      `gorm:"foreignKey:ChatId"`
@@ -75,13 +76,16 @@ func (cuk *ChatUserKeys) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type UserKeys struct {
-	Id           string    `gorm:"type:varchar(36);primaryKey"`
-	CreatedAt    time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
-	UpdatedAt    time.Time `gorm:"type:datetime"`
-	ExpiredAt    time.Time `gorm:"type:datetime"`
-	User         User      `gorm:"foreignKey:UserId"`
-	UserId       string    `gorm:"type:varchar(36);index"`
-	RefreshToken string    `gorm:"type:text"`
+	Id        string    `gorm:"type:varchar(36);primaryKey"`
+	CreatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
+	ExpiredAt time.Time `gorm:"type:datetime"`
+	Random    string    `gorm:"type:varchar(36)"`
+	User      User      `gorm:"foreignKey:UserId"`
+	UserId    string    `gorm:"type:varchar(36);index"`
 }
 
-// doesn't need a before create cause the uuid is determinde by the unique factor of the refresh token
+func (uk *UserKeys) BeforeCreate(tx *gorm.DB) (err error) {
+	uk.Id = uuid.NewString()
+	return
+}

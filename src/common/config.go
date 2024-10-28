@@ -13,6 +13,8 @@ import (
 type Config struct {
 	// stage
 	Stage string
+	// log level
+	LogLevel LogLevel
 	//gorm
 	GormConfig gorm.Config
 	//env
@@ -30,7 +32,6 @@ type Config struct {
 	BucketSecret             string
 	ProfilePictureBucketName string
 	FrontendURL              string
-	BackendDomain            string
 }
 
 func getEnv(key, fallback string) string {
@@ -64,18 +65,18 @@ func LoadDefaultConfig() *Config {
 			DisableForeignKeyConstraintWhenMigrating: true,
 		},
 		Stage:                    getEnv("STAGE", "development"),
+		LogLevel:                 LogLevel(getEnv("LOG_LEVEL", "DEBUG")),
 		DatabaseURL:              getEnv("DATABASE_URL", ""),
 		SaltRounds:               getEnvInt("SALT_OR_ROUNDS", 10),
-		Port:                     getEnv("PORT", "8080"),
 		JwtSecret:                getEnv("JWT_SECRET", "public_secret"),
 		JwtExpirationTime:        getEnvInt("JWT_EXPIRATION_TIME", 60*10),          // 10 minutes
 		RefreshExpirationTime:    getEnvInt("REFRESH_EXPIRATION_TIME", 60*60*24*7), // 1 week
+		Port:                     getEnv("PORT", "4000"),
 		DebugMode:                getEnv("DEBUG_MODE", "false") == "true",
 		BucketURL:                getEnv("BUCKET_URL", ""),
 		BucketAccessKeyId:        getEnv("BUCKET_ACCESS_KEY_ID", ""),
 		BucketSecret:             getEnv("BUCKET_SECRET", ""),
 		ProfilePictureBucketName: getEnv("PROFILE_PICTURE_BUCKET_NAME", ""),
 		FrontendURL:              getEnv("FRONTEND_URL", "http://localhost:3000"),
-		BackendDomain:            getEnv("BACKEND_DOMAIN", "localhost"),
 	}
 }

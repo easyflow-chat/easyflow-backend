@@ -70,6 +70,8 @@ func GetUserById(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger
 		}
 	}
 
+	logger.Printf("Successfully got user: %s", user.Id)
+
 	return &GetUserResponse{
 		Id:         user.Id,
 		CreatedAt:  user.CreatedAt,
@@ -100,6 +102,8 @@ func GetUserByEmail(db *gorm.DB, email string, logger *common.Logger) (bool, *ap
 		}
 	}
 
+	logger.PrintfInfo("User with email: %s found", email)
+
 	return true, nil
 }
 
@@ -117,6 +121,8 @@ func GenerateGetProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logg
 	if err != nil {
 		return nil, err
 	}
+
+	logger.Printf("Successfully generated profile picture URL for user: %s", user.Id)
 
 	return imageURL, nil
 }
@@ -140,6 +146,8 @@ func GenerateUploadProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, l
 			Details: err,
 		}
 	}
+
+	logger.Printf("Successfully generated profile picture upload URL for user: %s", user.Id)
 
 	return uploadURL, nil
 }
@@ -170,6 +178,8 @@ func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTPayload, payload *UpdateUserReq
 		}
 	}
 
+	logger.Printf("Successfully updated user: %s", user.Id)
+
 	return &UpdateUserResponse{
 		Id:        user.Id,
 		CreatedAt: user.CreatedAt,
@@ -197,6 +207,8 @@ func DeleteUser(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger)
 			Error: enum.ApiError,
 		}
 	}
+
+	logger.Printf("Successfully deleted user: %s", user.Id)
 
 	return nil
 }

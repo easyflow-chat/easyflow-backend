@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
 
@@ -95,8 +96,12 @@ func SetupEndpoint[T any](c *gin.Context) (*T, *Logger, *gorm.DB, *Config, []str
 	var serializableErrors []string
 
 	for _, e := range errors {
-		errArr := api.TranslateError(e)
-		serializableErrors = append(serializableErrors, errArr...)
+		if validationError, ok := e.(validator.ValidationErrors); ok {
+			errArr := api.TranslateError(validationError)
+			serializableErrors = append(serializableErrors, errArr...)
+		} else {
+			serializableErrors = append(serializableErrors, e.Error())
+		}
 	}
 
 	return payload, logger, db, cfg, serializableErrors
