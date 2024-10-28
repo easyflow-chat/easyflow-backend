@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/aws/aws-sdk-go-v2/config v1.28.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.41
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.66.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.66.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
