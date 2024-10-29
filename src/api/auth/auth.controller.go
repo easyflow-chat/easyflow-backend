@@ -30,13 +30,16 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	user, err := LoginService(db, cfg, payload, logger)
+	tokens, err := LoginService(db, cfg, payload, logger)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
 	}
 
-	c.JSON(200, user)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
+
+	c.JSON(200, gin.H{})
 }
 
 func CheckLoginController(c *gin.Context) {
@@ -81,7 +84,10 @@ func RefreshController(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, tokens)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
+
+	c.JSON(200, gin.H{})
 }
 
 func LogoutController(c *gin.Context) {
@@ -119,6 +125,9 @@ func LogoutController(c *gin.Context) {
 		c.JSON(e.Code, e)
 		return
 	}
+
+	c.SetCookie("access_token", "", 0, "/", cfg.FrontendURL, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", "", 0, "/", cfg.FrontendURL, cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
