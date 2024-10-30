@@ -26,6 +26,7 @@ type GetUserResponse struct {
 	Name       string    `json:"name"`
 	Bio        *string   `json:"bio"`
 	Iv         string    `json:"iv"`
+	ProfilePic *string   `json:"profilePic"`
 	PublicKey  string    `json:"publicKey"`
 	PrivateKey string    `json:"privateKey"`
 }

@@ -78,16 +78,6 @@ func AuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		if !payload.IsAccess {
-			logger.PrintfWarning("Invalid token type")
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.InvalidCookie,
-			})
-			c.Abort()
-			return
-		}
-
 		// Set user payload in context
 		c.Set("user", payload)
 		c.Next()
@@ -152,16 +142,6 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
-			})
-			c.Abort()
-			return
-		}
-
-		if token.IsAccess {
-			logger.PrintfWarning("Invalid token type")
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.InvalidCookie,
 			})
 			c.Abort()
 			return

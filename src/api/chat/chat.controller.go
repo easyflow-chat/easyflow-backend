@@ -40,7 +40,7 @@ func CreateChatController(c *gin.Context) {
 		return
 	}
 
-	chat, err := CreateChat(db, payload, user.(*auth.JWTPayload), logger)
+	chat, err := CreateChat(db, payload, user.(*auth.JWTAccessTokenPayload), logger)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
@@ -69,7 +69,7 @@ func GetChatPreviewsController(c *gin.Context) {
 		return
 	}
 
-	chats, err := GetChatPreviews(db, user.(*auth.JWTPayload), logger)
+	chats, err := GetChatPreviews(db, user.(*auth.JWTAccessTokenPayload), logger)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
@@ -100,7 +100,7 @@ func GetChatByIdController(c *gin.Context) {
 
 	chatId := c.Param("chatId")
 
-	chat, err := GetChatById(db, chatId, user.(*auth.JWTPayload), logger)
+	chat, err := GetChatById(db, chatId, user.(*auth.JWTAccessTokenPayload), logger)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return

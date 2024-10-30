@@ -40,18 +40,18 @@ func (c *Chat) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type User struct {
-	Id             string         `gorm:"type:varchar(36);primaryKey"`
-	CreatedAt      time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
-	UpdatedAt      time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
-	Email          string         `gorm:"type:varchar(255);uniqueIndex"`
-	Password       string         `gorm:"type:text"`
-	Name           string         `gorm:"type:varchar(50)"`
-	Bio            *string        `gorm:"type:varchar(1000)"`
-	Iv             string         `gorm:"type:varchar(25)"`
-	ProfilePicture *string        `gorm:"type:varchar(512)"`
-	PublicKey      string         `gorm:"type:text"`
-	PrivateKey     string         `gorm:"type:text"`
-	Keys           []ChatUserKeys `gorm:"foreignKey:UserId"`
+	Id             string         `gorm:"type:varchar(36);primaryKey" json:"id"`
+	CreatedAt      time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP" json:"createdAt"`
+	UpdatedAt      time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updatedAt"`
+	Email          string         `gorm:"type:varchar(255);uniqueIndex" json:"email"`
+	Password       string         `gorm:"type:text" json:"-,"`
+	Name           string         `gorm:"type:varchar(50)" json:"name"`
+	Bio            *string        `gorm:"type:varchar(1000)" json:"bio"`
+	Iv             string         `gorm:"type:varchar(25)" json:"iv"`
+	ProfilePicture *string        `gorm:"type:varchar(512)" json:"profilePicture"`
+	PublicKey      string         `gorm:"type:text" json:"publicKey"`
+	PrivateKey     string         `gorm:"type:text" json:"privateKey"`
+	Keys           []ChatUserKeys `gorm:"foreignKey:UserId" json:"-"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {

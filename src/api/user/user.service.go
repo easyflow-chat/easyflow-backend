@@ -60,7 +60,7 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, log
 	}, nil
 }
 
-func GetUserById(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) (*GetUserResponse, *api.ApiError) {
+func GetUserById(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, logger *common.Logger) (*GetUserResponse, *api.ApiError) {
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -107,7 +107,7 @@ func GetUserByEmail(db *gorm.DB, email string, logger *common.Logger) (bool, *ap
 	return true, nil
 }
 
-func GenerateGetProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
+func GenerateGetProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -127,7 +127,7 @@ func GenerateGetProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logg
 	return imageURL, nil
 }
 
-func GenerateUploadProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
+func GenerateUploadProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -152,7 +152,7 @@ func GenerateUploadProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, l
 	return uploadURL, nil
 }
 
-func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTPayload, payload *UpdateUserRequest, logger *common.Logger) (*UpdateUserResponse, *api.ApiError) {
+func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, payload *UpdateUserRequest, logger *common.Logger) (*UpdateUserResponse, *api.ApiError) {
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -190,7 +190,7 @@ func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTPayload, payload *UpdateUserReq
 	}, nil
 }
 
-func DeleteUser(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) *api.ApiError {
+func DeleteUser(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, logger *common.Logger) *api.ApiError {
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)

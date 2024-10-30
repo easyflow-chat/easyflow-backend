@@ -36,8 +36,8 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", "", cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", "", cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
@@ -77,15 +77,15 @@ func RefreshController(c *gin.Context) {
 		return
 	}
 
-	tokens, err := RefreshService(db, cfg, payload.(*JWTPayload), logger)
+	tokens, err := RefreshService(db, cfg, payload.(*JWTAccessTokenPayload), logger)
 
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
 	}
 
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", "", cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", "", cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
@@ -126,8 +126,8 @@ func LogoutController(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("access_token", "", 0, "/", cfg.FrontendURL, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", "", 0, "/", cfg.FrontendURL, cfg.Stage == "production", true)
+	c.SetCookie("access_token", "", 0, "/", "", cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", "", 0, "/", "", cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }

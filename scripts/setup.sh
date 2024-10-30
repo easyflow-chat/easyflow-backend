@@ -12,7 +12,7 @@ then
     then
         brew install pre-commit
     else
-        pip install pre-commit
+        pipx install pre-commit
     fi
 fi
 
