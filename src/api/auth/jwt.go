@@ -7,8 +7,8 @@ import (
 
 type JWTAccessTokenPayload struct {
 	jwt.RegisteredClaims
-	UserId		string 			  `json:"userId"`
-	RefreshRand *uuid.UUID 		  `json:"refreshRand"`
+	UserId      string     `json:"userId"`
+	RefreshRand *uuid.UUID `json:"refreshRand"`
 }
 
 type JWTPair struct {

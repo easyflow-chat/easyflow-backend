@@ -80,7 +80,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 			Issuer:    "easyflow",
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
-		UserId:        user.Id,
+		UserId:      user.Id,
 		RefreshRand: &random,
 	}
 
@@ -192,7 +192,7 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTAccessTokenPayl
 			Issuer:    "easyflow",
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
-		UserId:        user.Id,
+		UserId:      user.Id,
 		RefreshRand: &random,
 	}
 
