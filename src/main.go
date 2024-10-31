@@ -8,6 +8,7 @@ import (
 	"easyflow-backend/src/database"
 	"easyflow-backend/src/middleware"
 	"os"
+	"strings"
 	"time"
 
 	cors "github.com/OnlyNico43/gin-cors"
@@ -58,7 +59,7 @@ func main() {
 	log.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
 
 	router.Use(cors.CorsMiddleware(cors.Config{
-		AllowedOrigins:   []string{cfg.FrontendURL},
+		AllowedOrigins:   strings.Split(cfg.FrontendURL, ", "),
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders:   []string{"Authorization", "Content-Length", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},
