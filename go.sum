@@ -1,5 +1,5 @@
-github.com/OnlyNico43/gin-cors v1.0.1 h1:w9Cxfdgewyi1o91l1Wf/qAesEiySP6jqckD9VvtH8uI=
-github.com/OnlyNico43/gin-cors v1.0.1/go.mod h1:3zdPoGBEEQ+pXCJPHGzA2l33M/xUdSR0lEVGndzqXN4=
+github.com/OnlyNico43/gin-cors v1.0.2 h1:NbHLDEZdXKOXhW4BNSxtZpO4fDl2OAtKq8PPVM3xZaI=
+github.com/OnlyNico43/gin-cors v1.0.2/go.mod h1:3zdPoGBEEQ+pXCJPHGzA2l33M/xUdSR0lEVGndzqXN4=
 github.com/aws/aws-sdk-go v1.55.5 h1:KKUZBfBoyqy5d3swXyiC7Q76ic40rYcbqH7qjh59kzU=
 github.com/aws/aws-sdk-go v1.55.5/go.mod h1:eRwEWoyTWFMVYVQzKMNHWP5/RV4xIUGMQfXQHfHkpNU=
 github.com/aws/aws-sdk-go-v2 v1.32.2 h1:AkNLZEyYMLnx/Q/mSKkcMqwNFXMAvFto9bNsHqcTduI=
