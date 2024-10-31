@@ -6,6 +6,7 @@ import (
 	"easyflow-backend/src/enum"
 	"easyflow-backend/src/middleware"
 	"net/http"
+	"net/url"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,8 +37,18 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", "", cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", "", cfg.Stage == "production", true)
+	origin, error := url.Parse(c.GetHeader("Origin"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: error.Error(),
+		})
+		return
+	}
+
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", origin.Host, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", origin.Host, cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
@@ -84,8 +95,18 @@ func RefreshController(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", "", cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", "", cfg.Stage == "production", true)
+	origin, error := url.Parse(c.GetHeader("Origin"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: error.Error(),
+		})
+		return
+	}
+
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", origin.Host, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", origin.Host, cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
@@ -126,8 +147,18 @@ func LogoutController(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("access_token", "", 0, "/", "", cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", "", 0, "/", "", cfg.Stage == "production", true)
+	origin, error := url.Parse(c.GetHeader("Origin"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: error.Error(),
+		})
+		return
+	}
+
+	c.SetCookie("access_token", "", 0, "/", origin.Host, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", "", 0, "/", origin.Host, cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
