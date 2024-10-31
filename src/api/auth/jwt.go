@@ -5,12 +5,10 @@ import (
 	"github.com/google/uuid"
 )
 
-type JWTPayload struct {
+type JWTAccessTokenPayload struct {
 	jwt.RegisteredClaims
 	UserId      string     `json:"userId"`
-	Email       string     `json:"email"`
 	RefreshRand *uuid.UUID `json:"refreshRand"`
-	IsAccess    bool       `json:"isAccess"`
 }
 
 type JWTPair struct {

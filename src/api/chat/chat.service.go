@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *auth.JWTPayload, logger *common.Logger) (*CreateChatResponse, *api.ApiError) {
+func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *auth.JWTAccessTokenPayload, logger *common.Logger) (*CreateChatResponse, *api.ApiError) {
 	var users []database.User
 	var userKeys []UserKeyEntry
 
@@ -105,7 +105,7 @@ func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *auth.JWTPay
 	}, nil
 }
 
-func GetChatPreviews(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) ([]GetChatPreviewResponse, *api.ApiError) {
+func GetChatPreviews(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, logger *common.Logger) ([]GetChatPreviewResponse, *api.ApiError) {
 	logger.PrintfInfo("Attempting to get chat previews for user: %s", jwtPayload.UserId)
 	var chatUserKeys []database.ChatUserKeys
 	chatPreviews := []GetChatPreviewResponse{}
@@ -160,7 +160,7 @@ func GetChatPreviews(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Lo
 	return chatPreviews, nil
 }
 
-func GetChatById(db *gorm.DB, chatId string, jwtPayload *auth.JWTPayload, logger *common.Logger) (*GetChatByIdResponse, *api.ApiError) {
+func GetChatById(db *gorm.DB, chatId string, jwtPayload *auth.JWTAccessTokenPayload, logger *common.Logger) (*GetChatByIdResponse, *api.ApiError) {
 	var chat database.Chat
 	if err := db.Where("id = ?", chatId).First(&chat).Error; err != nil {
 		logger.PrintfError("Error getting chat with id: %s. Error: %s", chatId, err)

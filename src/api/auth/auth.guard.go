@@ -7,7 +7,6 @@ import (
 	"easyflow-backend/src/enum"
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -26,8 +25,17 @@ func AuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		// Get access_token from header
-		accessToken := strings.TrimPrefix(c.GetHeader("Authorization"), "Bearer ")
+		// Get access_token from cookies
+		accessToken, err := c.Cookie("access_token")
+		if err != nil {
+			logger.PrintfWarning("Error while getting access token cookie: %s", err.Error())
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized,
+				Error: enum.Unauthorized,
+			})
+			c.Abort()
+			return
+		}
 
 		if accessToken == "" {
 			logger.PrintfWarning("No access token provided")
@@ -70,16 +78,6 @@ func AuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		if !payload.IsAccess {
-			logger.PrintfWarning("Invalid token type")
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.InvalidCookie,
-			})
-			c.Abort()
-			return
-		}
-
 		// Set user payload in context
 		c.Set("user", payload)
 		c.Next()
@@ -99,7 +97,16 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			return
 		}
 
-		refreshToken := strings.TrimPrefix(c.GetHeader("Authorization"), "Bearer ")
+		refreshToken, err := c.Cookie("refresh_token")
+		if err != nil {
+			logger.PrintfWarning("Error while getting refresh token cookie: %s", err.Error())
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized,
+				Error: enum.Unauthorized,
+			})
+			c.Abort()
+			return
+		}
 
 		if refreshToken == "" {
 			logger.PrintfWarning("No refresh token provided")
@@ -135,16 +142,6 @@ func RefreshAuthGuard() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
-			})
-			c.Abort()
-			return
-		}
-
-		if token.IsAccess {
-			logger.PrintfWarning("Invalid token type")
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.InvalidCookie,
 			})
 			c.Abort()
 			return

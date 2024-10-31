@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, logger *common.Logger) (*CreateUserResponse, *api.ApiError) {
+func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, logger *common.Logger) (*database.User, *api.ApiError) {
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err == nil {
 		logger.PrintfError("User with email: %s already exists", payload.Email)
@@ -52,15 +52,10 @@ func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, log
 		}
 	}
 
-	return &CreateUserResponse{
-		Id:        user.Id,
-		CreatedAt: user.CreatedAt.String(),
-		UpdatedAt: user.UpdatedAt.String(),
-		Email:     user.Email,
-	}, nil
+	return &user, nil
 }
 
-func GetUserById(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) (*GetUserResponse, *api.ApiError) {
+func GetUserById(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, logger *common.Logger) (*database.User, *api.ApiError) {
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -72,17 +67,7 @@ func GetUserById(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger
 
 	logger.Printf("Successfully got user: %s", user.Id)
 
-	return &GetUserResponse{
-		Id:         user.Id,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
-		Email:      user.Email,
-		Name:       user.Name,
-		Bio:        user.Bio,
-		Iv:         user.Iv,
-		PublicKey:  user.PublicKey,
-		PrivateKey: user.PrivateKey,
-	}, nil
+	return &user, nil
 }
 
 func GetUserByEmail(db *gorm.DB, email string, logger *common.Logger) (bool, *api.ApiError) {
@@ -107,7 +92,7 @@ func GetUserByEmail(db *gorm.DB, email string, logger *common.Logger) (bool, *ap
 	return true, nil
 }
 
-func GenerateGetProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
+func GenerateGetProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -127,7 +112,7 @@ func GenerateGetProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logg
 	return imageURL, nil
 }
 
-func GenerateUploadProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
+func GenerateUploadProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, logger *common.Logger, cfg *common.Config) (*string, *api.ApiError) {
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -152,7 +137,7 @@ func GenerateUploadProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTPayload, l
 	return uploadURL, nil
 }
 
-func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTPayload, payload *UpdateUserRequest, logger *common.Logger) (*UpdateUserResponse, *api.ApiError) {
+func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, payload *UpdateUserRequest, logger *common.Logger) (*database.User, *api.ApiError) {
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)
@@ -180,17 +165,10 @@ func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTPayload, payload *UpdateUserReq
 
 	logger.Printf("Successfully updated user: %s", user.Id)
 
-	return &UpdateUserResponse{
-		Id:        user.Id,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Email:     user.Email,
-		Name:      user.Name,
-		Bio:       user.Bio,
-	}, nil
+	return &user, nil
 }
 
-func DeleteUser(db *gorm.DB, jwtPayload *auth.JWTPayload, logger *common.Logger) *api.ApiError {
+func DeleteUser(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, logger *common.Logger) *api.ApiError {
 	var user database.User
 	if err := db.Where("id = ?", jwtPayload.UserId).First(&user).Error; err != nil {
 		logger.PrintfError("Error getting user: %s", err)

@@ -62,7 +62,7 @@ func GetUserController(c *gin.Context) {
 		return
 	}
 
-	userFromDb, err := GetUserById(db, user.(*auth.JWTPayload), logger)
+	userFromDb, err := GetUserById(db, user.(*auth.JWTAccessTokenPayload), logger)
 
 	if err != nil {
 		c.JSON(err.Code, err)
@@ -91,7 +91,7 @@ func GetProfilePictureController(c *gin.Context) {
 		return
 	}
 
-	imageURL, err := GenerateGetProfilePictureURL(db, user.(*auth.JWTPayload), logger, cfg)
+	imageURL, err := GenerateGetProfilePictureURL(db, user.(*auth.JWTAccessTokenPayload), logger, cfg)
 
 	if err != nil {
 		c.JSON(err.Code, err)
@@ -150,7 +150,7 @@ func UpdateUserController(c *gin.Context) {
 		})
 	}
 
-	updatedUser, err := UpdateUser(db, user.(*auth.JWTPayload), payload, logger)
+	updatedUser, err := UpdateUser(db, user.(*auth.JWTAccessTokenPayload), payload, logger)
 
 	if err != nil {
 		c.JSON(err.Code, err)
@@ -179,7 +179,7 @@ func GenerateUploadProfilePictureURLController(c *gin.Context) {
 		})
 	}
 
-	uploadURL, err := GenerateUploadProfilePictureURL(db, user.(*auth.JWTPayload), logger, cfg)
+	uploadURL, err := GenerateUploadProfilePictureURL(db, user.(*auth.JWTAccessTokenPayload), logger, cfg)
 
 	if err != nil {
 		c.JSON(err.Code, err)
@@ -209,7 +209,7 @@ func DeleteUserController(c *gin.Context) {
 		return
 	}
 
-	err := DeleteUser(db, user.(*auth.JWTPayload), logger)
+	err := DeleteUser(db, user.(*auth.JWTAccessTokenPayload), logger)
 
 	if err != nil {
 		c.JSON(err.Code, err)
