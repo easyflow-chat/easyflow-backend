@@ -37,8 +37,8 @@ func LoginController(c *gin.Context) {
 	}
 
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", "", cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", "", cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
@@ -86,8 +86,8 @@ func RefreshController(c *gin.Context) {
 	}
 
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", cfg.FrontendURL, cfg.Stage == "production", true)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", "", cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", "", cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
@@ -129,8 +129,8 @@ func LogoutController(c *gin.Context) {
 	}
 
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", "", 0, "/", cfg.FrontendURL, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", "", 0, "/", cfg.FrontendURL, cfg.Stage == "production", true)
+	c.SetCookie("access_token", "", 0, "/", "", cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", "", 0, "/", "", cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
