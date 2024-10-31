@@ -6,26 +6,9 @@ import (
 	"easyflow-backend/src/enum"
 	"easyflow-backend/src/middleware"
 	"net/http"
-	"net/url"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
-
-func extractDomain(c *gin.Context, urlString string) *string {
-	origin, err := url.Parse(c.GetHeader("Origin"))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, api.ApiError{
-			Code:    http.StatusInternalServerError,
-			Error:   enum.ApiError,
-			Details: err.Error(),
-		})
-		return nil
-	}
-	parts := strings.Split(origin.Hostname(), ".")
-	domain := parts[len(parts)-2] + "." + parts[len(parts)-1]
-	return &domain
-}
 
 func RegisterAuthEndpoints(r *gin.RouterGroup) {
 	r.Use(middleware.LoggerMiddleware("Auth"))
@@ -53,11 +36,9 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	domain := extractDomain(c, c.GetHeader("Origin"))
-
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", *domain, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", *domain, cfg.Stage == "production", true)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", "*.easyflow.chat", cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", "*.easyflow.chat", cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
@@ -104,11 +85,9 @@ func RefreshController(c *gin.Context) {
 		return
 	}
 
-	domain := extractDomain(c, c.GetHeader("Origin"))
-
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", *domain, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", *domain, cfg.Stage == "production", true)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", "*.easyflow.chat", cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", "*.easyflow.chat", cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
@@ -149,11 +128,9 @@ func LogoutController(c *gin.Context) {
 		return
 	}
 
-	domain := extractDomain(c, c.GetHeader("Origin"))
-
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", "", 0, "/", *domain, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", "", 0, "/", *domain, cfg.Stage == "production", true)
+	c.SetCookie("access_token", "", 0, "/", "*.easyflow.chat", cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", "", 0, "/", "*.easyflow.chat", cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
