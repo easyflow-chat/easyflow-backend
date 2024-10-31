@@ -55,6 +55,7 @@ func LoginController(c *gin.Context) {
 
 	domain := extractDomain(c, c.GetHeader("Origin"))
 
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", *domain, cfg.Stage == "production", true)
 	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", *domain, cfg.Stage == "production", true)
 
@@ -105,6 +106,7 @@ func RefreshController(c *gin.Context) {
 
 	domain := extractDomain(c, c.GetHeader("Origin"))
 
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", *domain, cfg.Stage == "production", true)
 	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", *domain, cfg.Stage == "production", true)
 
@@ -149,6 +151,7 @@ func LogoutController(c *gin.Context) {
 
 	domain := extractDomain(c, c.GetHeader("Origin"))
 
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("access_token", "", 0, "/", *domain, cfg.Stage == "production", true)
 	c.SetCookie("refresh_token", "", 0, "/", *domain, cfg.Stage == "production", true)
 
