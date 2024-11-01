@@ -1,23 +1,18 @@
-#!/bin/bash
+# This is a setup script for the dependencies it needs pipx to be installed
 
-# Exit on error
 set -e
 
-# Check if pre-commit is installed and install it if it's not
-if ! command -v pre-commit &> /dev/null
-then
-    echo "Installing pre-commit..."
-    # check if brew is installed install it over brew
-    if command -v brew &> /dev/null
-    then
-        brew install pre-commit
-    else
-        pipx install pre-commit
-    fi
-fi
+# Install gloangci-lint
+echo "Installling golangci-lint"
+# binary will be $(go env GOPATH)/bin/golangci-lint
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
 
-# Install the pre-commit hooks
-echo "Installing pre-commit hooks..."
+# Install precommit
+echo "Installing pre-commit"
+pipx install pre-commit
 pre-commit install
+pre-commit run --all
+
+
 go install github.com/cespare/reflex@latest
 echo "Setup completed successfully."

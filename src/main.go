@@ -54,7 +54,11 @@ func main() {
 
 	router := gin.New()
 
-	router.SetTrustedProxies(nil)
+	err = router.SetTrustedProxies(nil)
+	if err != nil {
+		log.PrintfError("Could not set trusted proxies list")
+		return
+	}
 
 	log.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
 
@@ -91,5 +95,9 @@ func main() {
 	}
 
 	log.Printf("Starting server on port %s", cfg.Port)
-	router.Run(":" + cfg.Port)
+	err = router.Run(":" + cfg.Port)
+	if err != nil {
+		log.PrintfError("Failed to start server: %s", err)
+		return
+	}
 }

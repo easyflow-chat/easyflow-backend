@@ -44,7 +44,7 @@ type User struct {
 	CreatedAt      time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP" json:"createdAt"`
 	UpdatedAt      time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updatedAt"`
 	Email          string         `gorm:"type:varchar(255);uniqueIndex" json:"email"`
-	Password       string         `gorm:"type:text" json:"-,"`
+	Password       string         `gorm:"type:text" json:"-"`
 	Name           string         `gorm:"type:varchar(50)" json:"name"`
 	Bio            *string        `gorm:"type:varchar(1000)" json:"bio"`
 	Iv             string         `gorm:"type:varchar(25)" json:"iv"`
