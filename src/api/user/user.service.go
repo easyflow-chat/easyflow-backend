@@ -107,6 +107,15 @@ func GenerateGetProfilePictureURL(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPa
 		return nil, err
 	}
 
+	user.ProfilePicture = imageURL
+	if err := db.Update(user.Id, &user).Error; err != nil {
+		logger.PrintfError("Error saving user: %s", err)
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
+		}
+	}
+
 	logger.Printf("Successfully generated profile picture URL for user: %s", user.Id)
 
 	return imageURL, nil
@@ -159,7 +168,7 @@ func UpdateUser(db *gorm.DB, jwtPayload *auth.JWTAccessTokenPayload, payload *Up
 		return nil, &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
-			Details: err,
+			Details: err.Error(),
 		}
 	}
 

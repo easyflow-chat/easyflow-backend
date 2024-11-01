@@ -6,6 +6,7 @@ import (
 	"easyflow-backend/src/enum"
 	"easyflow-backend/src/middleware"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +18,12 @@ func RegisterAuthEndpoints(r *gin.RouterGroup) {
 	r.GET("/check", AuthGuard(), CheckLoginController)
 	r.GET("/refresh", RefreshAuthGuard(), RefreshController)
 	r.GET("/logout", AuthGuard(), LogoutController)
+}
+
+func getDomain(c *gin.Context) string {
+	domain := c.Request.Host
+
+	return strings.Split(domain, ":")[0]
 }
 
 func LoginController(c *gin.Context) {
@@ -36,9 +43,11 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", "", cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", "", cfg.Stage == "production", true)
+	domain := getDomain(c)
+	// TODO: Change to lax
+	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", domain, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", domain, cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
@@ -85,9 +94,11 @@ func RefreshController(c *gin.Context) {
 		return
 	}
 
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", "", cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", "", cfg.Stage == "production", true)
+	domain := getDomain(c)
+	// TODO: Change to lax
+	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", domain, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", domain, cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
@@ -128,9 +139,11 @@ func LogoutController(c *gin.Context) {
 		return
 	}
 
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", "", 0, "/", "", cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", "", 0, "/", "", cfg.Stage == "production", true)
+	domain := getDomain(c)
+	// TODO: Change to lax
+	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetCookie("access_token", "", 0, "/", domain, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", "", 0, "/", domain, cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
