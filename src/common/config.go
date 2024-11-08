@@ -31,7 +31,9 @@ type Config struct {
 	BucketAccessKeyId        string
 	BucketSecret             string
 	ProfilePictureBucketName string
-	FrontendURL              string
+	// app
+	FrontendURL string
+	Domain      string
 }
 
 func getEnv(key, fallback string) string {
@@ -78,5 +80,6 @@ func LoadDefaultConfig() *Config {
 		BucketSecret:             getEnv("BUCKET_SECRET", ""),
 		ProfilePictureBucketName: getEnv("PROFILE_PICTURE_BUCKET_NAME", ""),
 		FrontendURL:              getEnv("FRONTEND_URL", "http://localhost:3000"),
+		Domain:                   getEnv("DOMAIN", "localhost"),
 	}
 }
