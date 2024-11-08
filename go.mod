@@ -1,9 +1,9 @@
 module easyflow-backend
 
-go 1.23.2
+go 1.23.3
 
 require (
-	github.com/OnlyNico43/gin-cors v1.0.3
+	github.com/OnlyNico43/gin-cors v1.0.4
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/aws/aws-sdk-go-v2/config v1.28.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.41

@@ -17,6 +17,7 @@ func AuthGuard() gin.HandlerFunc {
 		_, logger, _, cfg, errs := common.SetupEndpoint[any](c)
 		if errs != nil {
 			c.JSON(http.StatusInternalServerError, api.ApiError{
+
 				Code:    http.StatusInternalServerError,
 				Error:   enum.ApiError,
 				Details: errs,
