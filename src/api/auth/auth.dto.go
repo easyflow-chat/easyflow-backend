@@ -7,5 +7,5 @@ type LoginRequest struct {
 
 type RefreshTokenResponse struct {
 	JWTPair
-	AccessTokenExpires int64 `json:"accessTokenExpires"`
+	AccessTokenExpires int `json:"accessTokenExpires"`
 }

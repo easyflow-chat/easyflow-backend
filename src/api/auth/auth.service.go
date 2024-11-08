@@ -170,12 +170,12 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	}, nil
 }
 
-func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTAccessTokenPayload, logger *common.Logger) (RefreshTokenResponse, *api.ApiError) {
+func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTAccessTokenPayload, logger *common.Logger) (JWTPair, *api.ApiError) {
 	//get user from db
 	var user database.User
 	if err := db.First(&user, "id = ?", payload.UserId).Error; err != nil {
 		logger.PrintfWarning("Could not get user with id: %s", payload.UserId)
-		return RefreshTokenResponse{}, &api.ApiError{
+		return JWTPair{}, &api.ApiError{
 			Code:    http.StatusUnauthorized,
 			Error:   enum.Unauthorized,
 			Details: err,
@@ -209,7 +209,7 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTAccessTokenPayl
 	accessToken, err := generateJwt(cfg, &accessTokenPayload)
 	if err != nil {
 		logger.PrintfError("Error generating jwt: %s", err)
-		return RefreshTokenResponse{}, &api.ApiError{
+		return JWTPair{}, &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
 			Details: err,
@@ -219,7 +219,7 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTAccessTokenPayl
 	refreshToken, err := generateJwt(cfg, &refreshTokenPayload)
 	if err != nil {
 		logger.PrintfError("Error generating jwt: %s", err)
-		return RefreshTokenResponse{}, &api.ApiError{
+		return JWTPair{}, &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
 			Details: err,
@@ -245,12 +245,9 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTAccessTokenPayl
 
 	logger.Printf("Refreshed token for user with id: %s", payload.UserId)
 
-	return RefreshTokenResponse{
-		JWTPair: JWTPair{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
-		},
-		AccessTokenExpires: expires.Unix(),
+	return JWTPair{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}, nil
 }
 

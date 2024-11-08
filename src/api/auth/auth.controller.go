@@ -44,12 +44,13 @@ func LoginController(c *gin.Context) {
 	}
 
 	domain := getDomain(c)
-	// TODO: Change to lax
-	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", domain, cfg.Stage == "production", true)
 	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", domain, cfg.Stage == "production", true)
 
-	c.JSON(200, gin.H{})
+	c.JSON(200, gin.H{
+		"accessTokenExpiresIn": cfg.JwtExpirationTime,
+	})
 }
 
 func CheckLoginController(c *gin.Context) {
@@ -95,12 +96,13 @@ func RefreshController(c *gin.Context) {
 	}
 
 	domain := getDomain(c)
-	// TODO: Change to lax
-	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", domain, cfg.Stage == "production", true)
 	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", domain, cfg.Stage == "production", true)
 
-	c.JSON(200, gin.H{})
+	c.JSON(200, gin.H{
+		"accessTokenExpiresIn": cfg.JwtExpirationTime,
+	})
 }
 
 func LogoutController(c *gin.Context) {
@@ -140,8 +142,7 @@ func LogoutController(c *gin.Context) {
 	}
 
 	domain := getDomain(c)
-	// TODO: Change to lax
-	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("access_token", "", 0, "/", domain, cfg.Stage == "production", true)
 	c.SetCookie("refresh_token", "", 0, "/", domain, cfg.Stage == "production", true)
 

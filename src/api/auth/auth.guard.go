@@ -29,7 +29,7 @@ func AuthGuard() gin.HandlerFunc {
 		// Get access_token from cookies
 		accessToken, err := c.Cookie("access_token")
 		if err != nil {
-			logger.PrintfWarning("Error while getting access token cookie: %s", err.Error())
+			logger.PrintfDebug("Error while getting access token cookie: %s", err.Error())
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
@@ -39,7 +39,7 @@ func AuthGuard() gin.HandlerFunc {
 		}
 
 		if accessToken == "" {
-			logger.PrintfWarning("No access token provided")
+			logger.PrintfDebug("No access token provided")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
@@ -51,7 +51,7 @@ func AuthGuard() gin.HandlerFunc {
 		// Validate token
 		payload, err := ValidateToken(cfg, accessToken)
 		if err != nil {
-			logger.PrintfError("Error validating token: %s", err.Error())
+			logger.PrintfDebug("Error validating token: %s", err.Error())
 			if errors.Is(err, jwt.ErrTokenExpired) {
 				c.JSON(http.StatusUnauthorized, api.ApiError{
 					Code:    http.StatusUnauthorized,
@@ -70,7 +70,7 @@ func AuthGuard() gin.HandlerFunc {
 		}
 
 		if payload.Issuer != "easyflow" {
-			logger.PrintfWarning("Invalid issuer")
+			logger.PrintfDebug("Invalid issuer")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
@@ -100,7 +100,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 
 		refreshToken, err := c.Cookie("refresh_token")
 		if err != nil {
-			logger.PrintfWarning("Error while getting refresh token cookie: %s", err.Error())
+			logger.PrintfDebug("Error while getting refresh token cookie: %s", err.Error())
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
@@ -110,7 +110,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 		}
 
 		if refreshToken == "" {
-			logger.PrintfWarning("No refresh token provided")
+			logger.PrintfDebug("No refresh token provided")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
@@ -139,7 +139,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 		}
 
 		if token.Issuer != "easyflow" {
-			logger.PrintfWarning("Invalid issuer")
+			logger.PrintfDebug("Invalid issuer")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.Unauthorized,
@@ -149,7 +149,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 		}
 
 		if err := db.First(&database.UserKeys{}, "user_id = ? AND random = ?", token.UserId, token.RefreshRand).Error; err != nil {
-			logger.PrintfWarning("Invalid refresh token")
+			logger.PrintfDebug("Invalid refresh token")
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.InvalidRefresh,
