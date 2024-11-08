@@ -17,7 +17,6 @@ func AuthGuard() gin.HandlerFunc {
 		_, logger, _, cfg, errs := common.SetupEndpoint[any](c)
 		if errs != nil {
 			c.JSON(http.StatusInternalServerError, api.ApiError{
-
 				Code:    http.StatusInternalServerError,
 				Error:   enum.ApiError,
 				Details: errs,
@@ -30,9 +29,9 @@ func AuthGuard() gin.HandlerFunc {
 		accessToken, err := c.Cookie("access_token")
 		if err != nil {
 			logger.PrintfDebug("Error while getting access token cookie: %s", err.Error())
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.Unauthorized,
+			c.JSON(http.StatusBadRequest, api.ApiError{
+				Code:  http.StatusBadRequest,
+				Error: enum.InvalidCookie,
 			})
 			c.Abort()
 			return
@@ -40,9 +39,9 @@ func AuthGuard() gin.HandlerFunc {
 
 		if accessToken == "" {
 			logger.PrintfDebug("No access token provided")
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.Unauthorized,
+			c.JSON(http.StatusBadGateway, api.ApiError{
+				Code:  http.StatusBadRequest,
+				Error: enum.InvalidAccessToken,
 			})
 			c.Abort()
 			return
@@ -53,27 +52,16 @@ func AuthGuard() gin.HandlerFunc {
 		if err != nil {
 			logger.PrintfDebug("Error validating token: %s", err.Error())
 			if errors.Is(err, jwt.ErrTokenExpired) {
-				c.JSON(http.StatusUnauthorized, api.ApiError{
-					Code:    http.StatusUnauthorized,
-					Error:   enum.ExpiredToken,
-					Details: err,
-				})
-			} else {
-				c.JSON(http.StatusInternalServerError, api.ApiError{
-					Code:    http.StatusInternalServerError,
-					Error:   enum.ApiError,
+				c.JSON(498, api.ApiError{
+					Code:    498, // token expired/invalid
+					Error:   enum.ExpiredAccessToken,
 					Details: err,
 				})
 			}
-			c.Abort()
-			return
-		}
-
-		if payload.Issuer != "easyflow" {
-			logger.PrintfDebug("Invalid issuer")
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.Unauthorized,
+			c.JSON(498, api.ApiError{
+				Code:    498, // token expired/invalid
+				Error:   enum.InvalidAccessToken,
+				Details: err,
 			})
 			c.Abort()
 			return
@@ -101,9 +89,9 @@ func RefreshAuthGuard() gin.HandlerFunc {
 		refreshToken, err := c.Cookie("refresh_token")
 		if err != nil {
 			logger.PrintfDebug("Error while getting refresh token cookie: %s", err.Error())
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.Unauthorized,
+			c.JSON(http.StatusBadRequest, api.ApiError{
+				Code:  http.StatusBadRequest,
+				Error: enum.InvalidCookie,
 			})
 			c.Abort()
 			return
@@ -111,9 +99,9 @@ func RefreshAuthGuard() gin.HandlerFunc {
 
 		if refreshToken == "" {
 			logger.PrintfDebug("No refresh token provided")
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.Unauthorized,
+			c.JSON(498, api.ApiError{
+				Code:  498, // token expired/invalid
+				Error: enum.InvalidAccessToken,
 			})
 			c.Abort()
 			return
@@ -123,36 +111,26 @@ func RefreshAuthGuard() gin.HandlerFunc {
 		if err != nil {
 			logger.PrintfError("Error validating token: %s", err.Error())
 			if errors.Is(err, jwt.ErrTokenExpired) {
-				c.JSON(http.StatusUnauthorized, api.ApiError{
-					Code:  http.StatusUnauthorized,
+				c.JSON(498, api.ApiError{
+					Code:  498, // token expired/invalid
 					Error: enum.ExpiredRefreshToken,
 				})
 				c.Abort()
 				return
 			}
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.Unauthorized,
-			})
-			c.Abort()
-			return
-		}
-
-		if token.Issuer != "easyflow" {
-			logger.PrintfDebug("Invalid issuer")
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.Unauthorized,
+			c.JSON(498, api.ApiError{
+				Code:  498, // token expired/invalid
+				Error: enum.InvalidRefreshToken,
 			})
 			c.Abort()
 			return
 		}
 
 		if err := db.First(&database.UserKeys{}, "user_id = ? AND random = ?", token.UserId, token.RefreshRand).Error; err != nil {
-			logger.PrintfDebug("Invalid refresh token")
-			c.JSON(http.StatusUnauthorized, api.ApiError{
-				Code:  http.StatusUnauthorized,
-				Error: enum.InvalidRefresh,
+			logger.PrintfDebug("refresh token not found in db")
+			c.JSON(498, api.ApiError{
+				Code:  498,
+				Error: enum.InvalidRefreshToken,
 			})
 
 			c.Abort()

@@ -120,7 +120,7 @@ func LogoutController(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, api.ApiError{
 			Code:    http.StatusBadRequest,
-			Error:   enum.InvalidRefresh,
+			Error:   enum.InvalidRefreshToken,
 			Details: err,
 		})
 	}
