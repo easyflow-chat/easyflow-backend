@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
       cancel-in-progress: true
 
     steps:
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
       cancel-in-progress: true
 
     steps:
@@ -40,8 +40,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+    concurrency:      
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
       cancel-in-progress: true
 
     steps:
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
       cancel-in-progress: true
 
     steps:
@@ -121,7 +121,7 @@ jobs:
     if: github.ref_name == 'main' || github.event_name == 'release'
 
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
       cancel-in-progress: true
 
     steps:
