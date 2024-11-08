@@ -60,6 +60,9 @@ func main() {
 		return
 	}
 
+	router.RedirectFixedPath = true
+	router.RedirectTrailingSlash = true
+
 	log.Printf("Frontend URL for cors: %s", cfg.FrontendURL)
 
 	router.Use(cors.CorsMiddleware(cors.Config{
