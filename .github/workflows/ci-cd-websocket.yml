@@ -75,7 +75,7 @@ jobs:
       - name: download artifact
         uses: actions/download-artifact@v4
         with:
-          path: ${{ github.workspace }}/bin/
+          path: ${{ github.workspace }}/websocket/bin/
           name: easyflow-websocket-${{ github.sha }}
 
       - name: login to docker

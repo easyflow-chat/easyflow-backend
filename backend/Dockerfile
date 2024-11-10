@@ -9,7 +9,7 @@ RUN mkdir /app
 WORKDIR /app
 
 # Copy the binary from the builder image
-COPY --chown=appuser:appgroup ../bin/easyflow-backend ./easyflow-backend
+COPY --chown=appuser:appgroup ./bin/easyflow-backend ./easyflow-backend
 COPY --chown=appuser:appgroup ./nginx.conf /etc/nginx/nginx.conf
 COPY --chown=appuser:appgroup ./entrypoint.sh ./entrypoint.sh
 
