@@ -1,16 +1,17 @@
 package auth
 
 import (
-	"easyflow-backend/src/api"
-	"easyflow-backend/src/api/utils"
-	"easyflow-backend/src/common"
-	"easyflow-backend/src/database"
-	"easyflow-backend/src/enum"
+	"easyflow-backend/api"
+	"easyflow-backend/api/utils"
+	"easyflow-backend/common"
+	"easyflow-backend/enum"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/easyflow-chat/easyflow-backend/lib/database"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"

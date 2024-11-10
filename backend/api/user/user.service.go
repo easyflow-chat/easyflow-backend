@@ -4,12 +4,13 @@ import (
 	"errors"
 	"net/http"
 
-	"easyflow-backend/src/api"
-	"easyflow-backend/src/api/auth"
-	"easyflow-backend/src/api/s3"
-	"easyflow-backend/src/common"
-	"easyflow-backend/src/database"
-	"easyflow-backend/src/enum"
+	"easyflow-backend/api"
+	"easyflow-backend/api/auth"
+	"easyflow-backend/api/s3"
+	"easyflow-backend/common"
+	"easyflow-backend/enum"
+
+	"github.com/easyflow-chat/easyflow-backend/lib/database"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"

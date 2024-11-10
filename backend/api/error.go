@@ -1,7 +1,7 @@
 package api
 
 import (
-	"easyflow-backend/src/enum"
+	"easyflow-backend/enum"
 )
 
 type ApiError struct {

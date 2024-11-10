@@ -2,9 +2,9 @@ package s3
 
 import (
 	"context"
-	"easyflow-backend/src/api"
-	"easyflow-backend/src/common"
-	"easyflow-backend/src/enum"
+	"easyflow-backend/api"
+	"easyflow-backend/common"
+	"easyflow-backend/enum"
 	"net/http"
 	"time"
 

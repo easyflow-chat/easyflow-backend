@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  format:
+  format-backend:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,9 +24,19 @@ jobs:
       - uses: actions/setup-go@v5
 
       - name: format
-        run: gofmt -l -e .
+        run: gofmt -l -e backend
 
-  lint:
+  format-websocket:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+
+      - name: format
+        run: gofmt -l -e websocket
+
+  lint-backend:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,8 +45,22 @@ jobs:
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: backend
 
-  build:
+  lint-websocket:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: websocket
+
+  build-backend:
     runs-on: ubuntu-latest
 
     steps:
@@ -44,7 +68,7 @@ jobs:
       - uses: actions/setup-go@v5
 
       - name: build
-        run: CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./bin/easyflow-backend ./src
+        run: cd backend && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./bin/easyflow-backend .
 
       - name: upload artifact
         uses: actions/upload-artifact@v4
@@ -52,9 +76,26 @@ jobs:
           path: ${{ github.workspace }}/bin/easyflow-backend
           name: easyflow-backend-${{ github.sha }}
           if-no-files-found: error
+  
+  build-websocket:
+    runs-on: ubuntu-latest
 
-  docker:
-    needs: [build, lint, format]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+
+      - name: build
+        run: cd websocket && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./bin/easyflow-websocket .
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{ github.workspace }}/bin/easyflow-websocket
+          name: easyflow-websocket-${{ github.sha }}
+          if-no-files-found: error
+
+  docker-backend:
+    needs: [build-backend, lint-backend, format-backend]
     runs-on: ubuntu-latest
 
     permissions:
@@ -102,7 +143,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy:
+  deploy-backend:
     needs: docker
     runs-on: ubuntu-latest
     if: github.ref_name == 'main' || github.event_name == 'release'

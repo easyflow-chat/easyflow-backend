@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"easyflow-backend/src/api/s3"
-	"easyflow-backend/src/common"
-	"easyflow-backend/src/database"
+	"easyflow-backend/api/s3"
+	"easyflow-backend/common"
+
+	"github.com/easyflow-chat/easyflow-backend/lib/database"
 
 	"gorm.io/gorm"
 )

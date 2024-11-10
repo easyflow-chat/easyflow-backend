@@ -1,15 +1,16 @@
 package main
 
 import (
-	"easyflow-backend/src/api/auth"
-	"easyflow-backend/src/api/chat"
-	"easyflow-backend/src/api/user"
-	"easyflow-backend/src/common"
-	"easyflow-backend/src/database"
-	"easyflow-backend/src/middleware"
+	"easyflow-backend/api/auth"
+	"easyflow-backend/api/chat"
+	"easyflow-backend/api/user"
+	"easyflow-backend/common"
+	"easyflow-backend/middleware"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/easyflow-chat/easyflow-backend/lib/database"
 
 	cors "github.com/OnlyNico43/gin-cors"
 	"github.com/gin-gonic/gin"
