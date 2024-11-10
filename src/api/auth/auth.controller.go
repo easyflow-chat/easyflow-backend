@@ -21,7 +21,7 @@ func RegisterAuthEndpoints(r *gin.RouterGroup) {
 }
 
 func getDomain(c *gin.Context) string {
-	domain := c.GetHeader("Origin")
+	domain := strings.TrimPrefix(strings.TrimPrefix(c.GetHeader("Origin"), "http://"), "https://")
 
 	return strings.Split(domain, ":")[0]
 }
