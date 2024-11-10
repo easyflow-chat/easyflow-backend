@@ -5,7 +5,7 @@ go 1.23.3
 require (
 	github.com/OnlyNico43/gin-cors v1.0.4
 	github.com/aws/aws-sdk-go v1.55.5
-	github.com/aws/aws-sdk-go-v2/config v1.28.0
+	github.com/aws/aws-sdk-go-v2/config v1.28.3
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.44
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.66.3
 	github.com/gin-gonic/gin v1.10.0
