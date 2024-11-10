@@ -9,7 +9,7 @@ RUN mkdir /app
 WORKDIR /app
 
 # Copy the binary from the builder image
-COPY --chown=appuser:appgroup ./bin/easyflow-websocket ./easyflow-websocket
+COPY --chown=appuser:appgroup ../bin/easyflow-websocket ./easyflow-websocket
 COPY --chown=appuser:appgroup ./nginx.conf /etc/nginx/nginx.conf
 COPY --chown=appuser:appgroup ./entrypoint.sh ./entrypoint.sh
 
