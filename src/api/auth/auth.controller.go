@@ -6,7 +6,6 @@ import (
 	"easyflow-backend/src/enum"
 	"easyflow-backend/src/middleware"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,13 +20,7 @@ func RegisterAuthEndpoints(r *gin.RouterGroup) {
 }
 
 func getDomain(c *gin.Context) string {
-	var domain = strings.Split(c.Request.URL.Hostname(), ":")[0]
-	var parts = strings.Split(domain, ".")
-	if len(parts) > 2 {
-		return strings.Join(parts[1:], ".")
-	} else {
-		return domain
-	}
+	return ".easyflow.chat"
 }
 
 func LoginController(c *gin.Context) {
