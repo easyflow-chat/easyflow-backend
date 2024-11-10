@@ -24,7 +24,7 @@ func getDomain(c *gin.Context) string {
 	var domain = strings.Split(c.Request.URL.Hostname(), ":")[0]
 	var parts = strings.Split(domain, ".")
 	if len(parts) > 2 {
-		return "." + strings.Join(parts[1:], ".")
+		return strings.Join(parts[1:], ".")
 	} else {
 		return domain
 	}
