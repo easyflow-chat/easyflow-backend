@@ -17,9 +17,8 @@ func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *auth.JWTAcc
 
 	// Start a transaction
 	tx := db.Begin()
-	logger.PrintfInfo("Attempting to create chat with name: %s", payload.Name)
 
-	//get usres from payload.UserKeys
+	//get users from payload.UserKeys
 	for _, userKey := range payload.UserKeys {
 		user := database.User{}
 		if err := tx.Where("id = ?", userKey.UserID).First(&user).Error; err != nil {

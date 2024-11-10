@@ -13,8 +13,9 @@ const (
 	WrongCredentials    ErrorCode = "WRONG_CREDENTIALS"
 	MalformedRequest    ErrorCode = "MALFORMED_REQUEST"
 	InvalidCookie       ErrorCode = "INVALID_COOKIE"
-	InvalidRefresh      ErrorCode = "INVALID_REFRESH"
-	ExpiredToken        ErrorCode = "EXPIRED_TOKEN"
-	ExpiredRefreshToken ErrorCode = "EXPIRED_REFRESH"
+	InvalidAccessToken  ErrorCode = "INVALID_ACCESS_TOKEN"
+	InvalidRefreshToken ErrorCode = "INVALID_REFRESH_TOKEN"
+	ExpiredAccessToken  ErrorCode = "EXPIRED_ACCESS_TOKEN"
+	ExpiredRefreshToken ErrorCode = "EXPIRED_REFRESH_TOKEN"
 	UserNotFound        ErrorCode = "USER_NOT_FOUND"
 )
