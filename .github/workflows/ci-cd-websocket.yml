@@ -3,7 +3,7 @@ name: CI/CD Websocket
 on:
   push:
     branches:
-      - "*"
+      - "**"
     paths:
       - "websocket/**"
       - "lib/**"
