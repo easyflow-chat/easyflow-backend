@@ -12,7 +12,7 @@ on:
       - "published"
   pull_request:
     branches:
-      - "*"
+      - "**"
     paths:
       - "backend/**"
       - "lib/**"
