@@ -21,7 +21,7 @@ func RegisterAuthEndpoints(r *gin.RouterGroup) {
 }
 
 func getDomain(c *gin.Context) string {
-	domain := c.Request.Host
+	domain := c.GetHeader("Origin")
 
 	return strings.Split(domain, ":")[0]
 }
@@ -143,8 +143,8 @@ func LogoutController(c *gin.Context) {
 
 	domain := getDomain(c)
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", "", 0, "/", domain, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", "", 0, "/", domain, cfg.Stage == "production", true)
+	c.SetCookie("access_token", "", -1, "/", domain, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", "", -1, "/", domain, cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
