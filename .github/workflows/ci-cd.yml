@@ -76,7 +76,7 @@ jobs:
           path: ${{ github.workspace }}/bin/easyflow-backend
           name: easyflow-backend-${{ github.sha }}
           if-no-files-found: error
-  
+
   build-websocket:
     runs-on: ubuntu-latest
 
@@ -144,7 +144,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy-backend:
-    needs: docker
+    needs: docker-backend
     runs-on: ubuntu-latest
     if: github.ref_name == 'main' || github.event_name == 'release'
 
