@@ -19,10 +19,6 @@ func RegisterAuthEndpoints(r *gin.RouterGroup) {
 	r.GET("/logout", AuthGuard(), LogoutController)
 }
 
-func getDomain(c *gin.Context) string {
-	return ".easyflow.chat"
-}
-
 func LoginController(c *gin.Context) {
 	payload, logger, db, cfg, errors := common.SetupEndpoint[LoginRequest](c)
 	if errors != nil {
@@ -40,10 +36,9 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	domain := getDomain(c)
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", domain, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", domain, cfg.Stage == "production", true)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", cfg.Domain, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", cfg.Domain, cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{
 		"accessTokenExpiresIn": cfg.JwtExpirationTime,
@@ -92,10 +87,9 @@ func RefreshController(c *gin.Context) {
 		return
 	}
 
-	domain := getDomain(c)
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", domain, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", domain, cfg.Stage == "production", true)
+	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", cfg.Domain, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", cfg.Domain, cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{
 		"accessTokenExpiresIn": cfg.JwtExpirationTime,
@@ -138,10 +132,9 @@ func LogoutController(c *gin.Context) {
 		return
 	}
 
-	domain := getDomain(c)
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", "", -1, "/", domain, cfg.Stage == "production", true)
-	c.SetCookie("refresh_token", "", -1, "/", domain, cfg.Stage == "production", true)
+	c.SetCookie("access_token", "", -1, "/", cfg.Domain, cfg.Stage == "production", true)
+	c.SetCookie("refresh_token", "", -1, "/", cfg.Domain, cfg.Stage == "production", true)
 
 	c.JSON(200, gin.H{})
 }
