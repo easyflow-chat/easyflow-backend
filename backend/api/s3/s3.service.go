@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/easyflow-chat/easyflow-backend/lib/logger"
 )
 
 /*
@@ -37,7 +38,7 @@ func connect(cfg *common.Config) (*s3.Client, error) {
 Object upload url generation
 */
 // TODO: Add filetype restriction to the upload url
-func GenerateUploadURL(logger *common.Logger, cfg *common.Config, bucketName string, objectKey string, expiration int) (*string, *api.ApiError) {
+func GenerateUploadURL(logger *logger.Logger, cfg *common.Config, bucketName string, objectKey string, expiration int) (*string, *api.ApiError) {
 	client, err := connect(cfg)
 	if err != nil {
 		logger.PrintfError("An error happened while connecting to the bucket %s", bucketName)
@@ -71,7 +72,7 @@ func GenerateUploadURL(logger *common.Logger, cfg *common.Config, bucketName str
 /*
 GetObjectsWithPrefix returns a list of objects with a given prefix in the bucket
 */
-func GetObjectsWithPrefix(logger *common.Logger, cfg *common.Config, bucketName string, prefix string) (*s3.ListObjectsV2Output, *api.ApiError) {
+func GetObjectsWithPrefix(logger *logger.Logger, cfg *common.Config, bucketName string, prefix string) (*s3.ListObjectsV2Output, *api.ApiError) {
 	client, err := connect(cfg)
 	if err != nil {
 		logger.PrintfError("An error happened while connecting to the bucket %s", bucketName)
@@ -101,7 +102,7 @@ func GetObjectsWithPrefix(logger *common.Logger, cfg *common.Config, bucketName 
 /*
 GenerateDownloadURL returns a presigned URL for an object in the bucket
 */
-func GenerateDownloadURL(logger *common.Logger, cfg *common.Config, bucketName string, objectKey string, expiration int) (*string, *api.ApiError) {
+func GenerateDownloadURL(logger *logger.Logger, cfg *common.Config, bucketName string, objectKey string, expiration int) (*string, *api.ApiError) {
 	client, err := connect(cfg)
 	if err != nil {
 		logger.PrintfError("An error happened while connecting to the bucket %s", bucketName)

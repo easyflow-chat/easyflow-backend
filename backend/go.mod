@@ -4,6 +4,10 @@ go 1.23.3
 
 replace github.com/easyflow-chat/easyflow-backend/lib/database v0.0.0 => ./../lib/database
 
+replace github.com/easyflow-chat/easyflow-backend/lib/logger v0.0.0 => ./../lib/logger
+
+replace github.com/easyflow-chat/easyflow-backend/lib/jwt v0.0.0 => ./../lib/jwt
+
 require (
 	github.com/OnlyNico43/gin-cors v1.0.4
 	github.com/aws/aws-sdk-go v1.55.5
@@ -11,6 +15,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.44
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.66.3
 	github.com/easyflow-chat/easyflow-backend/lib/database v0.0.0
+	github.com/easyflow-chat/easyflow-backend/lib/jwt v0.0.0
+	github.com/easyflow-chat/easyflow-backend/lib/logger v0.0.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1

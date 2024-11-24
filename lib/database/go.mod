@@ -1,6 +1,6 @@
-module easyflow-db
+module easyflow-backend/lib/database
 
-go 1.22.2
+go 1.23.3
 
 require (
 	github.com/google/uuid v1.6.0

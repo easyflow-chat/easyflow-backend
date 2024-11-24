@@ -8,21 +8,23 @@ import (
 	"easyflow-backend/middleware"
 	"net/http"
 
+	"github.com/easyflow-chat/easyflow-backend/lib/jwt"
+
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterChatEndpoints(r *gin.RouterGroup) {
-	r.Use(auth.AuthGuard())
 	r.Use(middleware.LoggerMiddleware("Chat"))
+	r.Use(auth.AuthGuard())
 	r.Use(middleware.RateLimiter(1, 5))
-	r.POST("", CreateChatController)
+	r.POST("/", CreateChatController)
 	r.GET("/preview", GetChatPreviewsController)
 	r.GET("/:chatId", GetChatByIdController)
 }
 
 func CreateChatController(c *gin.Context) {
 	payload, logger, db, _, errors := common.SetupEndpoint[CreateChatRequest](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -30,6 +32,8 @@ func CreateChatController(c *gin.Context) {
 		})
 		return
 	}
+
+	logger.PrintfDebug("Payload: %s", payload.Name)
 
 	user, ok := c.Get("user")
 	if !ok {
@@ -40,7 +44,7 @@ func CreateChatController(c *gin.Context) {
 		return
 	}
 
-	chat, err := CreateChat(db, payload, user.(*auth.JWTAccessTokenPayload), logger)
+	chat, err := CreateChat(db, payload, user.(*jwt.JWTTokenPayload), logger)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
@@ -51,7 +55,7 @@ func CreateChatController(c *gin.Context) {
 
 func GetChatPreviewsController(c *gin.Context) {
 	_, logger, db, _, errors := common.SetupEndpoint[any](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -69,7 +73,7 @@ func GetChatPreviewsController(c *gin.Context) {
 		return
 	}
 
-	chats, err := GetChatPreviews(db, user.(*auth.JWTAccessTokenPayload), logger)
+	chats, err := GetChatPreviews(db, user.(*jwt.JWTTokenPayload), logger)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
@@ -80,7 +84,7 @@ func GetChatPreviewsController(c *gin.Context) {
 
 func GetChatByIdController(c *gin.Context) {
 	_, logger, db, _, errors := common.SetupEndpoint[any](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -100,7 +104,7 @@ func GetChatByIdController(c *gin.Context) {
 
 	chatId := c.Param("chatId")
 
-	chat, err := GetChatById(db, chatId, user.(*auth.JWTAccessTokenPayload), logger)
+	chat, err := GetChatById(db, chatId, user.(*jwt.JWTTokenPayload), logger)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return

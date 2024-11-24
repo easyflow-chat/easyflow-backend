@@ -4,6 +4,7 @@ import (
 	"easyflow-backend/api"
 	"fmt"
 
+	"github.com/easyflow-chat/easyflow-backend/lib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
@@ -14,15 +15,8 @@ type AnyStruct struct{}
 func getPayload[T any](c *gin.Context) (*T, error) {
 	var payload T
 
-	if c.Request.ContentLength == 0 {
-		return nil, nil
-	}
-
-	if err := c.ShouldBind(&payload); err != nil {
-		return nil, err
-	}
-
-	if err := api.Validate.Struct(payload); err != nil {
+	if err := c.ShouldBind(&payload); err != nil && err.Error() != "EOF" {
+		// Handle binding errors, but ignore io.EOF which occurs when the body is empty
 		return nil, err
 	}
 
@@ -57,21 +51,21 @@ func getConfig(c *gin.Context) (*Config, error) {
 	return cfg, nil
 }
 
-func getLogger(c *gin.Context) (*Logger, error) {
+func getLogger(c *gin.Context) (*logger.Logger, error) {
 	raw_logger, ok := c.Get("logger")
 	if !ok {
 		return nil, fmt.Errorf("Logger not found in context")
 	}
 
-	logger, ok := raw_logger.(*Logger)
+	logger, ok := raw_logger.(*logger.Logger)
 	if !ok {
-		return nil, fmt.Errorf("type assertion to *common.Logger failed")
+		return nil, fmt.Errorf("type assertion to *logger.Logger failed")
 	}
 
 	return logger, nil
 }
 
-func SetupEndpoint[T any](c *gin.Context) (*T, *Logger, *gorm.DB, *Config, []string) {
+func SetupEndpoint[T any](c *gin.Context) (*T, *logger.Logger, *gorm.DB, *Config, []string) {
 	var errors []error
 	payload, err := getPayload[T](c)
 	if err != nil {

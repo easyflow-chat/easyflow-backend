@@ -7,6 +7,8 @@ import (
 	"easyflow-backend/middleware"
 	"net/http"
 
+	"github.com/easyflow-chat/easyflow-backend/lib/jwt"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,7 +23,7 @@ func RegisterAuthEndpoints(r *gin.RouterGroup) {
 
 func LoginController(c *gin.Context) {
 	payload, logger, db, cfg, errors := common.SetupEndpoint[LoginRequest](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -30,7 +32,7 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	tokens, err := LoginService(db, cfg, payload, logger)
+	tokens, user, err := LoginService(db, cfg, payload, logger)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
@@ -40,9 +42,7 @@ func LoginController(c *gin.Context) {
 	c.SetCookie("access_token", tokens.AccessToken, cfg.JwtExpirationTime, "/", cfg.Domain, cfg.Stage == "production", true)
 	c.SetCookie("refresh_token", tokens.RefreshToken, cfg.RefreshExpirationTime, "/", cfg.Domain, cfg.Stage == "production", true)
 
-	c.JSON(200, gin.H{
-		"accessTokenExpiresIn": cfg.JwtExpirationTime,
-	})
+	c.JSON(200, user)
 }
 
 func CheckLoginController(c *gin.Context) {
@@ -62,7 +62,7 @@ func CheckLoginController(c *gin.Context) {
 
 func RefreshController(c *gin.Context) {
 	_, logger, db, cfg, errors := common.SetupEndpoint[any](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -80,7 +80,7 @@ func RefreshController(c *gin.Context) {
 		return
 	}
 
-	tokens, err := RefreshService(db, cfg, payload.(*JWTAccessTokenPayload), logger)
+	tokens, err := RefreshService(db, cfg, payload.(*jwt.JWTTokenPayload), logger)
 
 	if err != nil {
 		c.JSON(err.Code, err)
@@ -98,7 +98,7 @@ func RefreshController(c *gin.Context) {
 
 func LogoutController(c *gin.Context) {
 	_, logger, db, cfg, errors := common.SetupEndpoint[any](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -116,7 +116,7 @@ func LogoutController(c *gin.Context) {
 		})
 	}
 
-	payload, err := ValidateToken(cfg, refresh)
+	payload, err := jwt.ValidateToken(cfg.JwtSecret, refresh)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,

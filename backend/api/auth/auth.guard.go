@@ -8,9 +8,10 @@ import (
 	"net/http"
 
 	"github.com/easyflow-chat/easyflow-backend/lib/database"
+	"github.com/easyflow-chat/easyflow-backend/lib/jwt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
+	jwtlib "github.com/golang-jwt/jwt/v5"
 )
 
 func AuthGuard() gin.HandlerFunc {
@@ -49,20 +50,29 @@ func AuthGuard() gin.HandlerFunc {
 		}
 
 		// Validate token
-		payload, err := ValidateToken(cfg, accessToken)
+		payload, err := jwt.ValidateToken(cfg.JwtSecret, accessToken)
 		if err != nil {
 			logger.PrintfDebug("Error validating token: %s", err.Error())
-			if errors.Is(err, jwt.ErrTokenExpired) {
-				c.JSON(498, api.ApiError{
-					Code:    498, // token expired/invalid
+			if errors.Is(err, jwtlib.ErrTokenExpired) {
+				c.JSON(http.StatusUnauthorized, api.ApiError{
+					Code:    http.StatusUnauthorized, // token expired/invalid
 					Error:   enum.ExpiredAccessToken,
 					Details: err,
 				})
 			}
-			c.JSON(498, api.ApiError{
-				Code:    498, // token expired/invalid
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:    http.StatusUnauthorized, // token expired/invalid
 				Error:   enum.InvalidAccessToken,
 				Details: err,
+			})
+			c.Abort()
+			return
+		}
+
+		if payload.IsRefresh {
+			c.JSON(http.StatusBadRequest, api.ApiError{
+				Code:  http.StatusBadRequest,
+				Error: enum.InvalidAccessToken,
 			})
 			c.Abort()
 			return
@@ -100,37 +110,46 @@ func RefreshAuthGuard() gin.HandlerFunc {
 
 		if refreshToken == "" {
 			logger.PrintfDebug("No refresh token provided")
-			c.JSON(498, api.ApiError{
-				Code:  498, // token expired/invalid
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized, // token expired/invalid
 				Error: enum.InvalidAccessToken,
 			})
 			c.Abort()
 			return
 		}
 
-		token, err := ValidateToken(cfg, refreshToken)
+		token, err := jwt.ValidateToken(cfg.JwtSecret, refreshToken)
 		if err != nil {
 			logger.PrintfError("Error validating token: %s", err.Error())
-			if errors.Is(err, jwt.ErrTokenExpired) {
-				c.JSON(498, api.ApiError{
-					Code:  498, // token expired/invalid
+			if errors.Is(err, jwtlib.ErrTokenExpired) {
+				c.JSON(http.StatusUnauthorized, api.ApiError{
+					Code:  http.StatusUnauthorized, // token expired/invalid
 					Error: enum.ExpiredRefreshToken,
 				})
 				c.Abort()
 				return
 			}
-			c.JSON(498, api.ApiError{
-				Code:  498, // token expired/invalid
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized, // token expired/invalid
 				Error: enum.InvalidRefreshToken,
 			})
 			c.Abort()
 			return
 		}
 
-		if err := db.First(&database.UserKeys{}, "user_id = ? AND random = ?", token.UserId, token.RefreshRand).Error; err != nil {
+		if !token.IsRefresh {
+			c.JSON(http.StatusBadRequest, api.ApiError{
+				Code:  http.StatusBadRequest,
+				Error: enum.InvalidRefreshToken,
+			})
+			c.Abort()
+			return
+		}
+
+		if err := db.First(&database.UserKeys{}, "user_id = ? AND random = ?", token.UserID, token.RefreshRand).Error; err != nil {
 			logger.PrintfDebug("refresh token not found in db")
-			c.JSON(498, api.ApiError{
-				Code:  498,
+			c.JSON(http.StatusUnauthorized, api.ApiError{
+				Code:  http.StatusUnauthorized,
 				Error: enum.InvalidRefreshToken,
 			})
 

@@ -7,14 +7,16 @@ import (
 
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+
+	"github.com/easyflow-chat/easyflow-backend/lib/logger"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 type Config struct {
 	// stage
 	Stage string
 	// log level
-	LogLevel LogLevel
+	LogLevel logger.LogLevel
 	//gorm
 	GormConfig gorm.Config
 	//env
@@ -63,11 +65,11 @@ func LoadDefaultConfig() *Config {
 
 	return &Config{
 		GormConfig: gorm.Config{
-			Logger:                                   logger.Default.LogMode(logger.Silent),
+			Logger:                                   gormLogger.Default.LogMode(gormLogger.Silent),
 			DisableForeignKeyConstraintWhenMigrating: true,
 		},
 		Stage:                    getEnv("STAGE", "development"),
-		LogLevel:                 LogLevel(getEnv("LOG_LEVEL", "DEBUG")),
+		LogLevel:                 logger.LogLevel(getEnv("LOG_LEVEL", "DEBUG")),
 		DatabaseURL:              getEnv("DATABASE_URL", ""),
 		SaltRounds:               getEnvInt("SALT_OR_ROUNDS", 10),
 		JwtSecret:                getEnv("JWT_SECRET", "public_secret"),

@@ -8,6 +8,8 @@ import (
 	"easyflow-backend/middleware"
 	"net/http"
 
+	"github.com/easyflow-chat/easyflow-backend/lib/jwt"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,7 +27,7 @@ func RegisterUserEndpoints(r *gin.RouterGroup) {
 
 func CreateUserController(c *gin.Context) {
 	payload, logger, db, cfg, errors := common.SetupEndpoint[CreateUserRequest](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -44,7 +46,7 @@ func CreateUserController(c *gin.Context) {
 
 func GetUserController(c *gin.Context) {
 	_, logger, db, _, errors := common.SetupEndpoint[any](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -62,7 +64,7 @@ func GetUserController(c *gin.Context) {
 		return
 	}
 
-	userFromDb, err := GetUserById(db, user.(*auth.JWTAccessTokenPayload), logger)
+	userFromDb, err := GetUserById(db, user.(*jwt.JWTTokenPayload), logger)
 
 	if err != nil {
 		c.JSON(err.Code, err)
@@ -73,7 +75,7 @@ func GetUserController(c *gin.Context) {
 
 func GetProfilePictureController(c *gin.Context) {
 	_, logger, db, cfg, errors := common.SetupEndpoint[any](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -91,7 +93,7 @@ func GetProfilePictureController(c *gin.Context) {
 		return
 	}
 
-	imageURL, err := GenerateGetProfilePictureURL(db, user.(*auth.JWTAccessTokenPayload), logger, cfg)
+	imageURL, err := GenerateGetProfilePictureURL(db, user.(*jwt.JWTTokenPayload), logger, cfg)
 
 	if err != nil {
 		c.JSON(err.Code, err)
@@ -103,7 +105,7 @@ func GetProfilePictureController(c *gin.Context) {
 
 func UserExists(c *gin.Context) {
 	_, logger, db, _, errors := common.SetupEndpoint[any](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -133,7 +135,7 @@ func UserExists(c *gin.Context) {
 
 func UpdateUserController(c *gin.Context) {
 	payload, logger, db, _, errors := common.SetupEndpoint[UpdateUserRequest](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -150,7 +152,7 @@ func UpdateUserController(c *gin.Context) {
 		})
 	}
 
-	updatedUser, err := UpdateUser(db, user.(*auth.JWTAccessTokenPayload), payload, logger)
+	updatedUser, err := UpdateUser(db, user.(*jwt.JWTTokenPayload), payload, logger)
 
 	if err != nil {
 		c.JSON(err.Code, err)
@@ -162,7 +164,7 @@ func UpdateUserController(c *gin.Context) {
 
 func GenerateUploadProfilePictureURLController(c *gin.Context) {
 	_, logger, db, cfg, errors := common.SetupEndpoint[any](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -179,7 +181,7 @@ func GenerateUploadProfilePictureURLController(c *gin.Context) {
 		})
 	}
 
-	uploadURL, err := GenerateUploadProfilePictureURL(db, user.(*auth.JWTAccessTokenPayload), logger, cfg)
+	uploadURL, err := GenerateUploadProfilePictureURL(db, user.(*jwt.JWTTokenPayload), logger, cfg)
 
 	if err != nil {
 		c.JSON(err.Code, err)
@@ -191,7 +193,7 @@ func GenerateUploadProfilePictureURLController(c *gin.Context) {
 
 func DeleteUserController(c *gin.Context) {
 	_, logger, db, _, errors := common.SetupEndpoint[CreateUserRequest](c)
-	if errors != nil {
+	if len(errors) > 0 {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -209,7 +211,7 @@ func DeleteUserController(c *gin.Context) {
 		return
 	}
 
-	err := DeleteUser(db, user.(*auth.JWTAccessTokenPayload), logger)
+	err := DeleteUser(db, user.(*jwt.JWTTokenPayload), logger)
 
 	if err != nil {
 		c.JSON(err.Code, err)

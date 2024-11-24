@@ -11,16 +11,17 @@ import (
 	"time"
 
 	"github.com/easyflow-chat/easyflow-backend/lib/database"
+	"github.com/easyflow-chat/easyflow-backend/lib/logger"
 
 	cors "github.com/OnlyNico43/gin-cors"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm/logger"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 func main() {
 	cfg := common.LoadDefaultConfig()
 
-	log := common.NewLogger(os.Stdout, "Main", nil, common.LogLevel(cfg.LogLevel))
+	log := logger.NewLogger(os.Stdout, "Main", cfg.LogLevel, "System")
 	var isConnected = false
 	var dbInst *database.DatabaseInst
 	var connectionAttempts = 0
@@ -45,7 +46,7 @@ func main() {
 
 	if !cfg.DebugMode {
 		gin.SetMode(gin.ReleaseMode)
-		dbInst.SetLogMode(logger.Silent)
+		dbInst.SetLogMode(gormLogger.Silent)
 	}
 
 	err := dbInst.Migrate()
@@ -99,8 +100,7 @@ func main() {
 	}
 
 	log.Printf("Starting server on port %s", cfg.Port)
-	err = router.Run(":" + cfg.Port)
-	if err != nil {
+	if err := router.Run(":" + cfg.Port); err != nil {
 		log.PrintfError("Failed to start server: %s", err)
 		return
 	}

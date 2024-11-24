@@ -5,56 +5,25 @@ import (
 	"easyflow-backend/api/utils"
 	"easyflow-backend/common"
 	"easyflow-backend/enum"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/easyflow-chat/easyflow-backend/lib/database"
+	"github.com/easyflow-chat/easyflow-backend/lib/jwt"
+	"github.com/easyflow-chat/easyflow-backend/lib/logger"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-func generateJwt[T interface{ jwt.Claims }](cfg *common.Config, payload T) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
-	signedToken, err := token.SignedString([]byte(cfg.JwtSecret))
-	if err != nil {
-		return "", fmt.Errorf("failed to sign token: %w", err)
-	}
-
-	return signedToken, nil
-}
-
-func ValidateToken(cfg *common.Config, token string) (*JWTAccessTokenPayload, error) {
-	var claims JWTAccessTokenPayload
-	_, err := jwt.ParseWithClaims(
-		token,
-		&claims,
-		func(token *jwt.Token) (interface{}, error) {
-			// Verify that the signing method is what we expect
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			return []byte(cfg.JwtSecret), nil
-		},
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &claims, nil
-}
-
-func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger *common.Logger) (JWTPair, *api.ApiError) {
+func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger *logger.Logger) (jwt.JWTPair, database.User, *api.ApiError) {
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err != nil {
 		logger.PrintfWarning("User with email: %s not found", payload.Email)
-		return JWTPair{}, &api.ApiError{
+		return jwt.JWTPair{}, database.User{}, &api.ApiError{
 			Code:    http.StatusUnauthorized,
 			Error:   enum.WrongCredentials,
 			Details: err,
@@ -64,7 +33,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	//check password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password)); err != nil {
 		logger.PrintfWarning("Wrong password for user with email: %s", payload.Email)
-		return JWTPair{}, &api.ApiError{
+		return jwt.JWTPair{}, database.User{}, &api.ApiError{
 			Code:    http.StatusUnauthorized,
 			Error:   enum.WrongCredentials,
 			Details: err,
@@ -75,42 +44,24 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	expires := time.Now().Add(time.Duration(cfg.JwtExpirationTime) * time.Second)
 	refreshExpires := time.Now().Add(time.Duration(cfg.RefreshExpirationTime) * time.Second)
 
-	accessTokenPayload := JWTAccessTokenPayload{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expires),
-			Issuer:    "easyflow",
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-		UserId:      user.Id,
-		RefreshRand: &random,
-	}
+	accessTokenPayload := jwt.CreateTokenPayload(user.ID, random.String(), expires, false)
 
-	refreshTokenPayload := JWTAccessTokenPayload{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(refreshExpires),
-			Issuer:    "easyflow",
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-		UserId:      user.Id,
-		RefreshRand: &random,
-	}
+	refreshTokenPayload := jwt.CreateTokenPayload(user.ID, random.String(), refreshExpires, true)
 
-	accessToken, err := generateJwt[JWTAccessTokenPayload](cfg, accessTokenPayload)
-
+	accessToken, err := jwt.GenerateJwt[jwt.JWTTokenPayload](cfg.JwtSecret, accessTokenPayload)
 	if err != nil {
 		logger.PrintfError("Error generating jwt: %s", err)
-		return JWTPair{}, &api.ApiError{
+		return jwt.JWTPair{}, database.User{}, &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
 			Details: err,
 		}
 	}
 
-	refreshToken, err := generateJwt[JWTAccessTokenPayload](cfg, refreshTokenPayload)
-
+	refreshToken, err := jwt.GenerateJwt[jwt.JWTTokenPayload](cfg.JwtSecret, refreshTokenPayload)
 	if err != nil {
 		logger.PrintfError("Error generating jwt: %s", err)
-		return JWTPair{}, &api.ApiError{
+		return jwt.JWTPair{}, database.User{}, &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
 			Details: err,
@@ -121,12 +72,12 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	entry := database.UserKeys{
 		Random:    random.String(),
 		ExpiredAt: refreshExpires,
-		UserId:    user.Id,
+		UserID:    user.ID,
 	}
 
-	if err := db.Save(&entry).Error; err != nil {
+	if err := db.Create(&entry).Error; err != nil {
 		logger.PrintfError("Error updating user key: %s", err)
-		return JWTPair{}, &api.ApiError{
+		return jwt.JWTPair{}, user, &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
 			Details: err,
@@ -163,20 +114,20 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 
 	}
 
-	logger.Printf("Logged in user: %s", user.Id)
+	logger.Printf("Logged in user: %s", user.ID)
 
-	return JWTPair{
+	return jwt.JWTPair{
 		RefreshToken: refreshToken,
 		AccessToken:  accessToken,
-	}, nil
+	}, user, nil
 }
 
-func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTAccessTokenPayload, logger *common.Logger) (JWTPair, *api.ApiError) {
+func RefreshService(db *gorm.DB, cfg *common.Config, payload *jwt.JWTTokenPayload, logger *logger.Logger) (jwt.JWTPair, *api.ApiError) {
 	//get user from db
 	var user database.User
-	if err := db.First(&user, "id = ?", payload.UserId).Error; err != nil {
-		logger.PrintfWarning("Could not get user with id: %s", payload.UserId)
-		return JWTPair{}, &api.ApiError{
+	if err := db.First(&user, "id = ?", payload.UserID).Error; err != nil {
+		logger.PrintfWarning("Could not get user with id: %s", payload.UserID)
+		return jwt.JWTPair{}, &api.ApiError{
 			Code:    http.StatusUnauthorized,
 			Error:   enum.Unauthorized,
 			Details: err,
@@ -187,40 +138,24 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTAccessTokenPayl
 	expires := time.Now().Add(time.Duration(cfg.JwtExpirationTime) * time.Second)
 	refreshExpires := time.Now().Add(time.Duration(cfg.RefreshExpirationTime) * time.Second)
 
-	accessTokenPayload := JWTAccessTokenPayload{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expires),
-			Issuer:    "easyflow",
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-		UserId:      user.Id,
-		RefreshRand: &random,
-	}
+	accessTokenPayload := jwt.CreateTokenPayload(user.ID, random.String(), expires, false)
 
-	refreshTokenPayload := JWTAccessTokenPayload{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(refreshExpires),
-			Issuer:    "easyflow",
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-		UserId:      user.Id,
-		RefreshRand: &random,
-	}
+	refreshTokenPayload := jwt.CreateTokenPayload(user.ID, random.String(), refreshExpires, true)
 
-	accessToken, err := generateJwt(cfg, &accessTokenPayload)
+	accessToken, err := jwt.GenerateJwt(cfg.JwtSecret, &accessTokenPayload)
 	if err != nil {
 		logger.PrintfError("Error generating jwt: %s", err)
-		return JWTPair{}, &api.ApiError{
+		return jwt.JWTPair{}, &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
 			Details: err,
 		}
 	}
 
-	refreshToken, err := generateJwt(cfg, &refreshTokenPayload)
+	refreshToken, err := jwt.GenerateJwt(cfg.JwtSecret, &refreshTokenPayload)
 	if err != nil {
 		logger.PrintfError("Error generating jwt: %s", err)
-		return JWTPair{}, &api.ApiError{
+		return jwt.JWTPair{}, &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
 			Details: err,
@@ -228,33 +163,33 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *JWTAccessTokenPayl
 	}
 
 	//write refresh token random to db
-	err = db.Model(database.UserKeys{}).Where(
-		&database.UserKeys{
-			UserId: payload.UserId,
-			Random: payload.RefreshRand.String(),
-		},
-	).Updates(
+	err = db.Updates(
 		database.UserKeys{
 			Random:    random.String(),
 			ExpiredAt: refreshExpires,
-		}).Error
+		}).Where(
+		&database.UserKeys{
+			UserID: payload.UserID,
+			Random: payload.RefreshRand,
+		},
+	).Error
 
 	if err != nil {
-		logger.PrintfError("Error updating user key with user id: %s and random: %s", payload.UserId, payload.RefreshRand)
+		logger.PrintfError("Error updating user key with user id: %s and random: %s", payload.UserID, payload.RefreshRand)
 
 	}
 
-	logger.Printf("Refreshed token for user with id: %s", payload.UserId)
+	logger.Printf("Refreshed token for user with id: %s", payload.UserID)
 
-	return JWTPair{
+	return jwt.JWTPair{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
 }
 
-func LogoutService(db *gorm.DB, payload *JWTAccessTokenPayload, logger *common.Logger) *api.ApiError {
-	if err := db.Delete(&database.UserKeys{}, payload.RefreshRand).Error; err != nil {
-		logger.PrintfError("Could not delete Refresh Token with random: %s and user id: %s", payload.RefreshRand, payload.UserId)
+func LogoutService(db *gorm.DB, payload *jwt.JWTTokenPayload, logger *logger.Logger) *api.ApiError {
+	if err := db.Delete(&database.UserKeys{UserID: payload.UserID, Random: payload.RefreshRand}).Error; err != nil {
+		logger.PrintfError("Could not delete Refresh Token with random: %s and user id: %s", payload.RefreshRand, payload.UserID)
 		return &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
@@ -262,7 +197,7 @@ func LogoutService(db *gorm.DB, payload *JWTAccessTokenPayload, logger *common.L
 		}
 	}
 
-	logger.Printf("Successfully ended session for user with id: %s and random: %s", payload.UserId, payload.RefreshRand)
+	logger.Printf("Successfully ended session for user with id: %s and random: %s", payload.UserID, payload.RefreshRand)
 
 	return nil
 }

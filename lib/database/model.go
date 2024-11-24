@@ -1,6 +1,8 @@
 package database
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"time"
 
 	"github.com/google/uuid"
@@ -8,84 +10,82 @@ import (
 )
 
 type Message struct {
-	Id        string    `gorm:"type:varchar(36);primaryKey"`
-	CreatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
-	UpdatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
-	Content   string    `gorm:"type:text"`
-	Iv        string    `gorm:"type:varchar(25)"`
-	ChatId    string    `gorm:"type:varchar(36);index"`
-	SenderId  string    `gorm:"type:varchar(36);index"`
-	Chat      Chat      `gorm:"foreignKey:ChatId"`
-	Sender    User      `gorm:"foreignKey:SenderId"`
+	ID        string    `gorm:"type:varchar(36);primaryKey" json:"id"`
+	CreatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updatedAt"`
+	Content   string    `gorm:"type:text" json:"content"`
+	Iv        string    `gorm:"type:varchar(25)" json:"iv"`
+	ChatID    string    `gorm:"type:varchar(36)" json:"chatId"`
+	SenderID  string    `gorm:"type:varchar(36)" json:"senderId"`
+	Chat      Chat      `gorm:"foreignKey:ChatID" json:"-"`
+	Sender    User      `gorm:"foreignKey:SenderID" json:"-"`
 }
 
 func (m *Message) BeforeCreate(tx *gorm.DB) (err error) {
-	m.Id = uuid.NewString()
+	m.ID = uuid.NewString()
 	return
 }
 
 type Chat struct {
-	Id          string    `gorm:"type:varchar(36);primaryKey"`
-	CreatedAt   time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
-	UpdatedAt   time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
-	Name        string    `gorm:"type:varchar(255)"`
-	Picture     *string   `gorm:"type:varchar(2048)"` // TODO: adjust for s3 file key
-	Description *string   `gorm:"type:text"`
-	Messages    []Message `gorm:"foreignKey:ChatId"`
+	ID          string       `gorm:"type:varchar(36);primaryKey"`
+	CreatedAt   time.Time    `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
+	UpdatedAt   time.Time    `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
+	Name        string       `gorm:"type:varchar(255)"`
+	Picture     *string      `gorm:"type:varchar(2048)"` // TODO: adjust for s3 file key
+	Description *string      `gorm:"type:text"`
+	Messages    []Message    `gorm:"foreignKey:ChatID"`
+	Users       []User       `gorm:"many2many:chats_users;"`
+	ChatsUsers  []ChatsUsers `gorm:"foreignKey:ChatID"`
 }
 
 func (c *Chat) BeforeCreate(tx *gorm.DB) (err error) {
-	c.Id = uuid.NewString()
+	c.ID = uuid.NewString()
 	return
 }
 
 type User struct {
-	Id             string         `gorm:"type:varchar(36);primaryKey" json:"id"`
-	CreatedAt      time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP" json:"createdAt"`
-	UpdatedAt      time.Time      `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updatedAt"`
-	Email          string         `gorm:"type:varchar(255);uniqueIndex" json:"email"`
-	Password       string         `gorm:"type:text" json:"-"`
-	Name           string         `gorm:"type:varchar(50)" json:"name"`
-	Bio            *string        `gorm:"type:varchar(1000)" json:"bio"`
-	Iv             string         `gorm:"type:varchar(25)" json:"iv"`
-	ProfilePicture *string        `gorm:"type:varchar(512)" json:"profilePicture"`
-	PublicKey      string         `gorm:"type:text" json:"publicKey"`
-	PrivateKey     string         `gorm:"type:text" json:"privateKey"`
-	Keys           []ChatUserKeys `gorm:"foreignKey:UserId" json:"-"`
+	ID                string       `gorm:"type:varchar(36);primaryKey" json:"id"`
+	CreatedAt         time.Time    `gorm:"type:datetime;default:CURRENT_TIMESTAMP" json:"createdAt"`
+	UpdatedAt         time.Time    `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updatedAt"`
+	Email             string       `gorm:"type:varchar(255);uniqueIndex" json:"email"`
+	Password          string       `gorm:"type:text" json:"-"`
+	Name              string       `gorm:"type:varchar(50)" json:"name"`
+	Bio               *string      `gorm:"type:varchar(1000)" json:"bio"`
+	Iv                string       `gorm:"type:varchar(16)" json:"iv"`
+	WrappingKeyRandom string       `gorm:"type:varchar(16)" json:"wrappingKeyRandom"`
+	ProfilePicture    *string      `gorm:"type:varchar(512)" json:"profilePicture"`
+	PublicKey         string       `gorm:"type:text" json:"publicKey"`
+	PrivateKey        string       `gorm:"type:text" json:"privateKey"`
+	Chats             []Chat       `gorm:"many2many:chats_users;"`
+	ChatsUsers        []ChatsUsers `gorm:"foreignKey:UserID"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
-	u.Id = uuid.NewString()
+	u.ID = uuid.NewString()
+	buf := make([]byte, 12)
+	_, err = rand.Read(buf)
+	if err != nil {
+		panic("Couldn't create random bytes")
+	}
+	u.WrappingKeyRandom = base64.RawStdEncoding.EncodeToString(buf)
 	return
 }
 
-type ChatUserKeys struct {
-	Id        string    `gorm:"type:varchar(36);primaryKey"`
+type ChatsUsers struct {
+	ChatID    string    `gorm:"type:varchar(36);primaryKey"`
+	UserID    string    `gorm:"type:varchar(36);primaryKey"`
 	CreatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
 	UpdatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
 	Key       string    `gorm:"type:text"`
-	ChatId    string    `gorm:"type:varchar(36);index"`
-	Chat      Chat      `gorm:"foreignKey:ChatId"`
-	UserId    string    `gorm:"type:varchar(36);index"`
-	User      User      `gorm:"foreignKey:UserId"`
-}
-
-func (cuk *ChatUserKeys) BeforeCreate(tx *gorm.DB) (err error) {
-	cuk.Id = uuid.NewString()
-	return
+	Chat      Chat      `gorm:"foreignKey:ChatID"`
+	User      User      `gorm:"foreignKey:UserID"`
 }
 
 type UserKeys struct {
-	Id        string    `gorm:"type:varchar(36);primaryKey"`
+	UserID    string    `gorm:"type:varchar(36);primaryKey"`
+	Random    string    `gorm:"type:varchar(36);primaryKey"`
 	CreatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP"`
 	UpdatedAt time.Time `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
 	ExpiredAt time.Time `gorm:"type:datetime"`
-	Random    string    `gorm:"type:varchar(36)"`
-	User      User      `gorm:"foreignKey:UserId"`
-	UserId    string    `gorm:"type:varchar(36);index"`
-}
-
-func (uk *UserKeys) BeforeCreate(tx *gorm.DB) (err error) {
-	uk.Id = uuid.NewString()
-	return
+	User      User      `gorm:"foreignKey:UserID"`
 }

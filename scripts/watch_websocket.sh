@@ -1,2 +1,3 @@
-cd websocket
-reflex -r '^/.*\.go$' -s -- go run main.go
+#!/bin/sh
+
+reflex -r '^websocket/(.*?).go|websocket/.env|lib/(.*?).go$' -s -- sh -c 'cd websocket && go run main.go'

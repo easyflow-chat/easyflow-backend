@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/easyflow-chat/easyflow-backend/lib/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,7 +34,7 @@ func LoggerMiddleware(module_name string) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("logger", common.NewLogger(os.Stdout, module_name, c, common.LogLevel(config.LogLevel)))
+		c.Set("logger", logger.NewLogger(os.Stdout, module_name, logger.LogLevel(config.LogLevel), c.ClientIP()))
 		c.Next()
 	}
 }

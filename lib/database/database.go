@@ -16,6 +16,15 @@ func NewDatabaseInst(url string, config *gorm.Config) (*DatabaseInst, error) {
 		return nil, err
 	}
 
+	err = db.SetupJoinTable(&User{}, "Chats", &ChatsUsers{})
+	if err != nil {
+		panic(err)
+	}
+	err = db.SetupJoinTable(&Chat{}, "Users", &ChatsUsers{})
+	if err != nil {
+		panic(err)
+	}
+
 	return &DatabaseInst{client: db}, nil
 }
 
@@ -24,7 +33,7 @@ func (d *DatabaseInst) GetClient() *gorm.DB {
 }
 
 func (d *DatabaseInst) Migrate() error {
-	return d.client.AutoMigrate(&Message{}, &Chat{}, &User{}, &ChatUserKeys{}, &UserKeys{})
+	return d.client.AutoMigrate(&Message{}, &Chat{}, &User{}, &ChatsUsers{}, &UserKeys{})
 }
 
 func (d *DatabaseInst) SetLogMode(mode logger.LogLevel) {
