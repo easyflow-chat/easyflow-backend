@@ -28,6 +28,8 @@ type Config struct {
 	JwtSecret             string
 	JwtExpirationTime     int
 	RefreshExpirationTime int
+	// Cookie
+	CookieSecret string
 	// s3
 	BucketURL                string
 	BucketAccessKeyId        string
@@ -75,6 +77,7 @@ func LoadDefaultConfig() *Config {
 		JwtSecret:                getEnv("JWT_SECRET", "public_secret"),
 		JwtExpirationTime:        getEnvInt("JWT_EXPIRATION_TIME", 60*10),          // 10 minutes
 		RefreshExpirationTime:    getEnvInt("REFRESH_EXPIRATION_TIME", 60*60*24*7), // 1 week
+		CookieSecret:             getEnv("COOKIE_SECRET", "cookie_secret"),
 		Port:                     getEnv("PORT", "4000"),
 		DebugMode:                getEnv("DEBUG_MODE", "false") == "true",
 		BucketURL:                getEnv("BUCKET_URL", ""),
