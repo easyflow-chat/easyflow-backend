@@ -67,7 +67,7 @@ func LoadDefaultConfig() *Config {
 
 	return &Config{
 		GormConfig: gorm.Config{
-			Logger:                                   gormLogger.Default.LogMode(gormLogger.Silent),
+			Logger:                                   gormLogger.Default.LogMode(gormLogger.Info),
 			DisableForeignKeyConstraintWhenMigrating: true,
 		},
 		Stage:                    getEnv("STAGE", "development"),

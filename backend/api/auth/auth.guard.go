@@ -147,7 +147,7 @@ func RefreshAuthGuard() gin.HandlerFunc {
 		}
 
 		if err := db.First(&database.UserKeys{}, "user_id = ? AND random = ?", token.UserID, token.RefreshRand).Error; err != nil {
-			logger.PrintfDebug("refresh token not found in db")
+			logger.PrintfDebug("Refresh token with user id: %s and random: %s not found in db", token.UserID, token.RefreshRand)
 			c.JSON(http.StatusUnauthorized, api.ApiError{
 				Code:  http.StatusUnauthorized,
 				Error: enum.InvalidRefreshToken,

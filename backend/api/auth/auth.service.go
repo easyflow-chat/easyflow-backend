@@ -134,13 +134,13 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *jwt.JWTTokenPayloa
 		}
 	}
 
-	random := uuid.New()
+	random := uuid.New().String()
 	expires := time.Now().Add(time.Duration(cfg.JwtExpirationTime) * time.Second)
 	refreshExpires := time.Now().Add(time.Duration(cfg.RefreshExpirationTime) * time.Second)
 
-	accessTokenPayload := jwt.CreateTokenPayload(user.ID, random.String(), expires, false)
+	accessTokenPayload := jwt.CreateTokenPayload(user.ID, random, expires, false)
 
-	refreshTokenPayload := jwt.CreateTokenPayload(user.ID, random.String(), refreshExpires, true)
+	refreshTokenPayload := jwt.CreateTokenPayload(user.ID, random, refreshExpires, true)
 
 	accessToken, err := jwt.GenerateJwt(cfg.JwtSecret, &accessTokenPayload)
 	if err != nil {
@@ -163,23 +163,25 @@ func RefreshService(db *gorm.DB, cfg *common.Config, payload *jwt.JWTTokenPayloa
 	}
 
 	//write refresh token random to db
-	err = db.Updates(
-		database.UserKeys{
-			Random:    random.String(),
-			ExpiredAt: refreshExpires,
-		}).Where(
+	if err := db.Model(database.UserKeys{}).Where(
 		&database.UserKeys{
 			UserID: payload.UserID,
 			Random: payload.RefreshRand,
 		},
-	).Error
-
-	if err != nil {
-		logger.PrintfError("Error updating user key with user id: %s and random: %s", payload.UserID, payload.RefreshRand)
-
+	).Updates(
+		database.UserKeys{
+			Random:    random,
+			ExpiredAt: refreshExpires,
+		}).Error; err != nil {
+		logger.PrintfError("Error updating user key with user id: %s and random: %s due to: %s", payload.UserID, payload.RefreshRand, err)
+		return jwt.JWTPair{}, &api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: err,
+		}
 	}
 
-	logger.Printf("Refreshed token for user with id: %s", payload.UserID)
+	logger.Printf("Refreshed token for user with id: %s and random: %s. New random: %s", payload.UserID, payload.RefreshRand, random)
 
 	return jwt.JWTPair{
 		AccessToken:  accessToken,

@@ -17,7 +17,7 @@ func RegisterAuthEndpoints(r *gin.RouterGroup) {
 	r.Use(middleware.NewRateLimiter(1, 2))
 	r.POST("/login", LoginController)
 	r.GET("/check", AuthGuard(), CheckLoginController)
-	r.GET("/refresh", RefreshAuthGuard(), RefreshController)
+	r.GET("/refresh", middleware.NewRateLimiter(0.5, 0), RefreshAuthGuard(), RefreshController)
 	r.GET("/logout", AuthGuard(), LogoutController)
 }
 
