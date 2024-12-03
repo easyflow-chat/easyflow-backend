@@ -46,7 +46,17 @@ func LoginController(c *gin.Context) {
 }
 
 func CheckLoginController(c *gin.Context) {
-	_, ok := c.Get("user")
+	_, logger, _, _, errors := common.SetupEndpoint[any](c)
+	if len(errors) > 0 {
+		c.JSON(http.StatusInternalServerError, api.ApiError{
+			Code:    http.StatusInternalServerError,
+			Error:   enum.ApiError,
+			Details: errors,
+		})
+		return
+	}
+
+	user, ok := c.Get("user")
 	if !ok {
 		c.JSON(http.StatusInternalServerError, api.ApiError{
 			Code:    http.StatusInternalServerError,
@@ -55,6 +65,8 @@ func CheckLoginController(c *gin.Context) {
 		})
 		return
 	}
+
+	logger.PrintfDebug("User with id: %s is currently logged in", user.(*jwt.JWTTokenPayload).UserID)
 
 	// only returns if it comes through the authguard so we can assume the user is logged in
 	c.JSON(200, true)

@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/easyflow-chat/easyflow-backend/lib/logger"
-	gormLogger "gorm.io/gorm/logger"
 )
 
 type Config struct {
@@ -66,10 +65,6 @@ func LoadDefaultConfig() *Config {
 	}
 
 	return &Config{
-		GormConfig: gorm.Config{
-			Logger:                                   gormLogger.Default.LogMode(gormLogger.Silent),
-			DisableForeignKeyConstraintWhenMigrating: true,
-		},
 		Stage:                    getEnv("STAGE", "development"),
 		LogLevel:                 logger.LogLevel(getEnv("LOG_LEVEL", "DEBUG")),
 		DatabaseURL:              getEnv("DATABASE_URL", ""),

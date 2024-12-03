@@ -76,7 +76,7 @@ func LoginService(db *gorm.DB, cfg *common.Config, payload *LoginRequest, logger
 	}
 
 	if err := db.Create(&entry).Error; err != nil {
-		logger.PrintfError("Error updating user key: %s", err)
+		logger.PrintfError("Error creating user key: %s", err)
 		return jwt.JWTPair{}, user, &api.ApiError{
 			Code:    http.StatusInternalServerError,
 			Error:   enum.ApiError,
