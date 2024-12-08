@@ -3,12 +3,13 @@ package user
 import "time"
 
 type CreateUserRequest struct {
-	Email      string `json:"email" validate:"required,email"`
-	Name       string `json:"name" validate:"required,lte=50"`
-	Password   string `json:"password" validate:"required,gte=12"`
-	PublicKey  string `json:"publicKey" validate:"required"`
-	PrivateKey string `json:"privateKey" validate:"required"`
-	Iv         string `json:"iv" validate:"required,lte=16"`
+	Email          string `json:"email" validate:"required,email"`
+	Name           string `json:"name" validate:"required,lte=50"`
+	Password       string `json:"password" validate:"required,gte=12"`
+	PublicKey      string `json:"publicKey" validate:"required"`
+	PrivateKey     string `json:"privateKey" validate:"required"`
+	Iv             string `json:"iv" validate:"required,lte=16"`
+	TurnstileToken string `json:"turnstileToken" validate:"required"`
 }
 
 type CreateUserResponse struct {

@@ -37,6 +37,9 @@ type Config struct {
 	// app
 	FrontendURL string
 	Domain      string
+	// Cloudflare Turnstile
+	TurnstileUrl    string
+	TurnstileSecret string
 }
 
 func getEnv(key, fallback string) string {
@@ -81,5 +84,7 @@ func LoadDefaultConfig() *Config {
 		ProfilePictureBucketName: getEnv("PROFILE_PICTURE_BUCKET_NAME", ""),
 		FrontendURL:              getEnv("FRONTEND_URL", "http://localhost:3000"),
 		Domain:                   getEnv("DOMAIN", "localhost"),
+		TurnstileUrl:             getEnv("TURNSTILE_URL", "https://challenges.cloudflare.com/turnstile/v0/siteverify"),
+		TurnstileSecret:          getEnv("TURNSTILE_SECRET", ""),
 	}
 }

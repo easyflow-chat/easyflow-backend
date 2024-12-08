@@ -32,7 +32,7 @@ func LoginController(c *gin.Context) {
 		return
 	}
 
-	tokens, user, err := LoginService(db, cfg, payload, logger)
+	tokens, user, err := LoginService(db, cfg, payload, c.ClientIP(), logger)
 	if err != nil {
 		c.JSON(err.Code, err)
 		return

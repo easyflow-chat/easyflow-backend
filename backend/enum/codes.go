@@ -11,6 +11,7 @@ const (
 	NotFound            ErrorCode = "NOT_FOUND"
 	AlreadyExists       ErrorCode = "ALREADY_EXISTS"
 	WrongCredentials    ErrorCode = "WRONG_CREDENTIALS"
+	InvalidTurnstile    ErrorCode = "INVALID_TURNSTILE"
 	MalformedRequest    ErrorCode = "MALFORMED_REQUEST"
 	InvalidCookie       ErrorCode = "INVALID_COOKIE"
 	InvalidAccessToken  ErrorCode = "INVALID_ACCESS_TOKEN"

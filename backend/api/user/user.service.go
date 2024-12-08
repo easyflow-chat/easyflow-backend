@@ -6,6 +6,7 @@ import (
 
 	"easyflow-backend/api"
 	"easyflow-backend/api/s3"
+	"easyflow-backend/api/utils"
 	"easyflow-backend/common"
 	"easyflow-backend/enum"
 
@@ -17,7 +18,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, logger *logger.Logger) (*database.User, *api.ApiError) {
+func CreateUser(db *gorm.DB, payload *CreateUserRequest, cfg *common.Config, logger *logger.Logger, ip string) (*database.User, *api.ApiError) {
+	ok, checkTurnstileErr := utils.CheckCloudflareTurnstile(logger, cfg, ip, payload.TurnstileToken)
+	if !ok {
+		return nil, checkTurnstileErr
+	}
+
 	var user database.User
 	if err := db.Where("email = ?", payload.Email).First(&user).Error; err == nil {
 		logger.PrintfError("User with email: %s already exists", payload.Email)

@@ -36,7 +36,7 @@ func CreateUserController(c *gin.Context) {
 		return
 	}
 
-	user, err := CreateUser(db, payload, cfg, logger)
+	user, err := CreateUser(db, payload, cfg, logger, c.ClientIP())
 	if err != nil {
 		c.JSON(err.Code, err)
 		return
