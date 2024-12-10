@@ -22,7 +22,6 @@ type MessageEntry struct {
 
 type CreateChatRequest struct {
 	Name        string         `json:"name" validate:"required"`
-	Picture     *string        `json:"picture" validate:"omitempty,url"`
 	Description *string        `json:"description" validate:"omitempty"`
 	UserKeys    []UserKeyEntry `json:"userKeys" validate:"required,dive"`
 }

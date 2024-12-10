@@ -46,7 +46,7 @@ func main() {
 	var hub = socket.NewHub(dbInst.GetClient(), log)
 	go hub.Run()
 	// Register the WebSocket handler
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
 				// Log the error

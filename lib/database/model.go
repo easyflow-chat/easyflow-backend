@@ -44,20 +44,20 @@ func (c *Chat) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type User struct {
-	ID                string       `gorm:"type:varchar(36);primaryKey" json:"id"`
-	CreatedAt         time.Time    `gorm:"type:datetime;default:CURRENT_TIMESTAMP" json:"createdAt"`
-	UpdatedAt         time.Time    `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updatedAt"`
-	Email             string       `gorm:"type:varchar(255);uniqueIndex" json:"email"`
-	Password          string       `gorm:"type:text" json:"-"`
-	Name              string       `gorm:"type:varchar(50)" json:"name"`
-	Bio               *string      `gorm:"type:varchar(1000)" json:"bio"`
-	Iv                string       `gorm:"type:varchar(16)" json:"iv"`
-	WrappingKeyRandom string       `gorm:"type:varchar(16)" json:"wrappingKeyRandom"`
-	ProfilePicture    *string      `gorm:"type:varchar(512)" json:"profilePicture"`
-	PublicKey         string       `gorm:"type:text" json:"publicKey"`
-	PrivateKey        string       `gorm:"type:text" json:"privateKey"`
-	Chats             []Chat       `gorm:"many2many:chats_users;"`
-	ChatsUsers        []ChatsUsers `gorm:"foreignKey:UserID"`
+	ID               string       `gorm:"type:varchar(36);primaryKey" json:"id"`
+	CreatedAt        time.Time    `gorm:"type:datetime;default:CURRENT_TIMESTAMP" json:"createdAt"`
+	UpdatedAt        time.Time    `gorm:"type:datetime;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updatedAt"`
+	Email            string       `gorm:"type:varchar(255);uniqueIndex" json:"email"`
+	Password         string       `gorm:"type:text" json:"-"`
+	Name             string       `gorm:"type:varchar(50)" json:"name"`
+	Bio              *string      `gorm:"type:varchar(1000)" json:"bio"`
+	Iv               string       `gorm:"type:varchar(16)" json:"iv"`
+	WrapingKeyRandom string       `gorm:"type:varchar(16)" json:"wrapingKeyRandom"`
+	ProfilePicture   *string      `gorm:"type:varchar(512)" json:"profilePicture"`
+	PublicKey        string       `gorm:"type:text" json:"publicKey"`
+	PrivateKey       string       `gorm:"type:text" json:"privateKey"`
+	Chats            []Chat       `gorm:"many2many:chats_users;"`
+	ChatsUsers       []ChatsUsers `gorm:"foreignKey:UserID"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
@@ -67,7 +67,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	if err != nil {
 		panic("Couldn't create random bytes")
 	}
-	u.WrappingKeyRandom = base64.RawStdEncoding.EncodeToString(buf)
+	u.WrapingKeyRandom = base64.RawStdEncoding.EncodeToString(buf)
 	return
 }
 

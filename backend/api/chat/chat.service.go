@@ -16,7 +16,6 @@ import (
 func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *jwt.JWTTokenPayload, logger *logger.Logger) (*ChatResponse, *api.ApiError) {
 	chat := database.Chat{
 		Name:        payload.Name,
-		Picture:     payload.Picture,
 		Description: payload.Description,
 	}
 
