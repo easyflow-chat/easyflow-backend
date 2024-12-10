@@ -4,6 +4,7 @@ import (
 	"easyflow-backend/api"
 	"easyflow-backend/enum"
 	"net/http"
+	"slices"
 
 	"github.com/easyflow-chat/easyflow-backend/lib/database"
 	"github.com/easyflow-chat/easyflow-backend/lib/jwt"
@@ -12,42 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *jwt.JWTTokenPayload, logger *logger.Logger) (*CreateChatResponse, *api.ApiError) {
-	var users []database.User
-	var userKeys []UserKeyEntry
-
-	//get users from payload.UserKeys
-	for _, userKey := range payload.UserKeys {
-		user := database.User{ID: jwtPayload.UserID}
-		if err := db.First(&user).Error; err != nil {
-			logger.PrintfError("Error getting user with id: %s", userKey.UserID)
-			return nil, &api.ApiError{
-				Code:  http.StatusInternalServerError,
-				Error: enum.ApiError,
-			}
-		}
-		users = append(users, user)
-		userKeys = append(userKeys, userKey)
-	}
-
-	if len(users) != len(payload.UserKeys) {
-		logger.PrintfError("User keys and users length mismatch")
-		return nil, &api.ApiError{
-			Code:  http.StatusNotFound,
-			Error: enum.UserNotFound,
-		}
-	}
-
-	if len(users) != len(userKeys) {
-		logger.PrintfError("User keys and users length mismatch")
-		return nil, &api.ApiError{
-			Code:  http.StatusInternalServerError,
-			Error: enum.ApiError,
-		}
-	}
-
-	logger.PrintfDebug("Payload: %s", payload.Name)
-
+func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *jwt.JWTTokenPayload, logger *logger.Logger) (*ChatResponse, *api.ApiError) {
 	chat := database.Chat{
 		Name:        payload.Name,
 		Picture:     payload.Picture,
@@ -66,20 +32,23 @@ func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *jwt.JWTToke
 		}
 	}
 
-	for i, user := range users {
-		chatUserKeys := database.ChatsUsers{
-			ChatID: chat.ID,
-			UserID: user.ID,
-			Key:    userKeys[i].Key,
-		}
+	var chatUserKeys []database.ChatsUsers
 
-		if err := tx.Create(&chatUserKeys).Error; err != nil {
-			tx.Rollback()
-			logger.PrintfError("Error creating chat user key: %s", err)
-			return nil, &api.ApiError{
-				Code:  http.StatusInternalServerError,
-				Error: enum.ApiError,
-			}
+	for _, user := range payload.UserKeys {
+		chatUserKey := database.ChatsUsers{
+			ChatID: chat.ID,
+			UserID: user.UserID,
+			Key:    user.Key,
+		}
+		chatUserKeys = append(chatUserKeys, chatUserKey)
+	}
+
+	if err := tx.CreateInBatches(&chatUserKeys, 100).Error; err != nil {
+		tx.Rollback()
+		logger.PrintfError("Error creating chat user key: %s", err)
+		return nil, &api.ApiError{
+			Code:  http.StatusInternalServerError,
+			Error: enum.ApiError,
 		}
 	}
 
@@ -93,20 +62,35 @@ func CreateChat(db *gorm.DB, payload *CreateChatRequest, jwtPayload *jwt.JWTToke
 
 	logger.Printf("Successfully created chat with id: %s", chat.ID)
 
-	return &CreateChatResponse{
+	keyIndex := slices.IndexFunc(chatUserKeys, func(chatUser database.ChatsUsers) bool {
+		return chatUser.UserID == jwtPayload.UserID
+	})
+	if keyIndex == -1 {
+		logger.PrintfError("Error getting chat user key for user")
+		return nil, &api.ApiError{
+			Code:    http.StatusBadRequest,
+			Error:   enum.MalformedRequest,
+			Details: "Users and keys are mismatched or missing",
+		}
+	}
+
+	key := chatUserKeys[keyIndex].Key
+
+	return &ChatResponse{
 		Id:          chat.ID,
 		CreatedAt:   chat.CreatedAt.String(),
 		UpdateAt:    chat.UpdatedAt.String(),
 		Name:        chat.Name,
 		Picture:     chat.Picture,
 		Description: chat.Description,
+		Key:         key,
 	}, nil
 }
 
-func GetChatPreviews(db *gorm.DB, jwtPayload *jwt.JWTTokenPayload, logger *logger.Logger) ([]GetChatPreviewResponse, *api.ApiError) {
+func GetChatPreviews(db *gorm.DB, jwtPayload *jwt.JWTTokenPayload, logger *logger.Logger) ([]ChatResponse, *api.ApiError) {
 	logger.PrintfInfo("Attempting to get chat previews for user: %s", jwtPayload.UserID)
 	var chatUserKeys []database.ChatsUsers
-	chatPreviews := []GetChatPreviewResponse{}
+	chatPreviews := []ChatResponse{}
 
 	if err := db.Where("user_id = ?", jwtPayload.UserID).Find(&chatUserKeys).Error; err != nil {
 		logger.PrintfError("Error getting chats for user: %s", err)
@@ -126,7 +110,7 @@ func GetChatPreviews(db *gorm.DB, jwtPayload *jwt.JWTTokenPayload, logger *logge
 			}
 		}
 
-		var lastMessage *database.Message = nil
+		var lastMessage database.Message
 		if err := db.Where("chat_id = ?", chatUserKey.ChatID).Order("created_at desc").First(&lastMessage).Error; err != nil {
 			if err != gorm.ErrRecordNotFound {
 				// If there's another error, log it and return
@@ -137,19 +121,17 @@ func GetChatPreviews(db *gorm.DB, jwtPayload *jwt.JWTTokenPayload, logger *logge
 				}
 			}
 
-			chatPreview := GetChatPreviewResponse{
-				CreateChatResponse: CreateChatResponse{
-					Id:          chat.ID,
-					CreatedAt:   chat.CreatedAt.String(),
-					UpdateAt:    chat.UpdatedAt.String(),
-					Name:        chat.Name,
-					Picture:     chat.Picture,
-					Description: chat.Description,
-				},
-				LastMessage: &lastMessage.Content,
+			var createChatResponse = ChatResponse{
+				Id:          chat.ID,
+				CreatedAt:   chat.CreatedAt.String(),
+				UpdateAt:    chat.UpdatedAt.String(),
+				Name:        chat.Name,
+				Picture:     chat.Picture,
+				Description: chat.Description,
+				Key:         chatUserKey.Key,
 			}
 
-			chatPreviews = append(chatPreviews, chatPreview)
+			chatPreviews = append(chatPreviews, createChatResponse)
 		}
 	}
 
@@ -207,17 +189,6 @@ func GetChatById(db *gorm.DB, chatId string, jwtPayload *jwt.JWTTokenPayload, lo
 		)
 	}
 
-	// TODO: Just make one object for user keys not array
-	userKeyEntries := []UserKeyEntry{}
-	for _, chatUserKey := range chatUserKeys {
-		userKeyEntries = append(userKeyEntries,
-			UserKeyEntry{
-				UserID: chatUserKey.UserID,
-				Key:    chatUserKey.Key,
-			},
-		)
-	}
-
 	messageEntries := []MessageEntry{}
 	for _, message := range Messages {
 		messageEntries = append(messageEntries,
@@ -235,7 +206,7 @@ func GetChatById(db *gorm.DB, chatId string, jwtPayload *jwt.JWTTokenPayload, lo
 	logger.Printf("Successfully got chat with id: %s", chatId)
 
 	return &GetChatByIdResponse{
-		CreateChatResponse: CreateChatResponse{
+		ChatResponse: ChatResponse{
 			Id:          chat.ID,
 			CreatedAt:   chat.CreatedAt.String(),
 			UpdateAt:    chat.UpdatedAt.String(),
@@ -244,7 +215,6 @@ func GetChatById(db *gorm.DB, chatId string, jwtPayload *jwt.JWTTokenPayload, lo
 			Description: chat.Description,
 		},
 		Users:    usersEntries,
-		UserKeys: userKeyEntries,
 		Messages: messageEntries,
 	}, nil
 

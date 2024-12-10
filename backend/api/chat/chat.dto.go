@@ -27,22 +27,18 @@ type CreateChatRequest struct {
 	UserKeys    []UserKeyEntry `json:"userKeys" validate:"required,dive"`
 }
 
-type CreateChatResponse struct {
+type ChatResponse struct {
 	Id          string  `json:"id"`
 	CreatedAt   string  `json:"createdAt"`
 	UpdateAt    string  `json:"updatedAt"`
 	Name        string  `json:"name"`
 	Picture     *string `json:"picture"`
 	Description *string `json:"description"`
-}
-
-type GetChatPreviewResponse struct {
-	CreateChatResponse
-	LastMessage *string `json:"last_message"`
+	Key         string  `json:"key"`
 }
 
 type GetChatByIdResponse struct {
-	CreateChatResponse
+	ChatResponse
 	UserKeys []UserKeyEntry `json:"userKeys"`
 	Messages []MessageEntry `json:"messages"`
 	Users    []UserEntry    `json:"users"`
